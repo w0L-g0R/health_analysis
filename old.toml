@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "health-analysis"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "api", from = "src"}]
+
+[tool.poetry.dependencies]
+python
+taskiq
+taskiq-aio-pika
+esdbclient
+mypy
+pika
+psycopg2
+python-dotenv
+
+
+[tool.poetry.group.tools.dependencies]
+isort
+black
+pylint
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
