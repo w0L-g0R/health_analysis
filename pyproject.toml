@@ -8,17 +8,17 @@ version = "0.1.0"
 description = ""
 authors = ["Your Name <you@example.com>"]
 readme = "README.md"
-packages = [{include = "api", from="src"}]
+packages = [{include = "api", from="src"},{include = "tests"}]
 
 
 [tool.poetry.scripts]
-main = "main:run"
+main = "src.main:run"
+events = "tests.events:run"
 
 [tool.poetry.dependencies]
 python = "^3.12"
 esdbclient = "^1.1"
 mypy = "^1.11.1"
-psycopg2 = "2.9.8"
 python-dotenv = "^1.0.1"
 isort = "^5.13.2"
 black = "^24.8.0"
@@ -26,6 +26,7 @@ pylint = "^3.2.6"
 pydantic = "^2.8.2"
 dramatiq = {extras = ["rabbitmq", "redis", "watch"], version = "^1.17.0"}
 faker = "^28.0.0"
+psycopg2-binary = "^2.9.9"
 
 
 [build-system]

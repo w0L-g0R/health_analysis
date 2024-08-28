@@ -15,31 +15,35 @@ FAKE = Faker()
 STREAM_NAME = "stream_one"
 EVENTS = 1
 
-client = EventStoreDBClient(
-    uri="esdb://localhost:2113?Tls=false"
-)
+client = EventStoreDBClient(uri="esdb://localhost:2113?Tls=false")
 
-for i in range(EVENTS):
-    meal = Meal(
-        meal_id=uuid4(),
-        user_id=uuid4(),
-        meal_name=FAKE.name(),
-        calories=FAKE.random.uniform(10, 50),
-    )
 
-    # printer(f"MEAL:\n{meal}\n")
+def run():
+    for i in range(EVENTS):
+        meal = Meal(
+            meal_id=uuid4(),
+            user_id=uuid4(),
+            meal_name=FAKE.name(),
+            calories="{:.2f}".format(FAKE.random.uniform(10, 50)),
+        )
 
-    event = NewEvent(
-        type="InsertMeal",
-        data=bytes(meal.model_dump_json(), encoding="utf-8"),
-    )
+        # printer(f"MEAL:\n{meal}\n")
 
-    # printer(f"EVENT:\n{event}\n")
+        event = NewEvent(
+            type="InsertMeal",
+            data=bytes(meal.model_dump_json(), encoding="utf-8"),
+        )
 
-    client.append_to_stream(
-        stream_name=STREAM_NAME,
-        current_version=StreamState.ANY,
-        events=event,
-    )
+        # printer(f"EVENT:\n{event}\n")
 
-print("---> END EVENTS")
+        client.append_to_stream(
+            stream_name=STREAM_NAME,
+            current_version=StreamState.ANY,
+            events=event,
+        )
+
+    print("---> END EVENTS")
+
+
+if __name__ == "__main__":
+    run()
