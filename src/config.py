@@ -1,21 +1,16 @@
-from dotenv import load_dotenv
 import os
+
+from dotenv import load_dotenv
 
 load_dotenv()
 
-TIMESCALE_DB_URL = os.getenv('TIMESCALE_DB_URL')
-EVENTSTORE_DB_URL = os.getenv('EVENTSTORE_DB_URL')
-BROKER_URL = os.getenv('BROKER_URL')
-TASK_RESULTS_URL = os.getenv('TASK_RESULTS_URL')
+TIMESCALE_DB = os.getenv("TIMESCALE_DB")
+EVENTSTORE = os.getenv("EVENTSTORE")
+RABBIT_MQ = os.getenv("RABBIT_MQ")
+REDIS_RESULTS = os.getenv("REDIS_RESULTS")
 
-MEALS_QUEUE = os.getenv('TASK_RESULTS_URL')
-HEALTH_QUEUE = os.getenv('TASK_RESULTS_URL')
+MEALS_QUEUE = os.getenv("MEALS_QUEUE")
+HEALTH_QUEUE = os.getenv("HEALTH_QUEUE")
 
-
-# print(CONNECTION)
-
-
-# with psycopg2.connect(CONNECTION) eas conn:
-#     cursor = conn.cursor()
-#     cursor.execute("SELECT * FROM etl_meals")
-#     print(cursor.fetchone())
+MEALS_TABLE = os.getenv("MEALS_TABLE")
+HEALTH_TABLE = os.getenv("HEALTH_TABLE")

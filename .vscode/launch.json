@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "DEBUG",
+            "type": "debugpy",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "stopOnEntry": false,
+            "justMyCode": true,
+            "python": "${command:python.interpreterPath}",
+            "cwd": "${workspaceFolder}",
+            "module": "poetry run main",
+        }
+    ]
+}

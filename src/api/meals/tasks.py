@@ -1,5 +1,18 @@
-from api.meals.brokers import meals_broker
+import dramatiq
+from psycopg2.sql import SQL
 
-@meals_broker.task(task_name="add_meal", queue_name="meals_queue")
-def add_meal(meal: str) -> str:
-    return meal
+from api.clients.timescale import TimescaleDbClient
+from api.meals.mutations import InsertMealArgs
+from config import MEALS_QUEUE, TIMESCALE_DB
+
+client = TimescaleDbClient(connection=TIMESCALE_DB)
+
+
+class MealTasks:
+    @dramatiq.actor(queue_name=MEALS_QUEUE)
+    @staticmethod
+    def insert_meal(
+        statement: SQL,
+        args: InsertMealArgs,
+    ) -> None:
+        client.execute(statement, args)
