@@ -2,6 +2,7 @@ import asyncio
 
 from esdbclient import EventStoreDBClient
 
+from api.meals.handler import MealsEventHandler
 from api.meals.models import Meal
 from api.meals.mutations import MealMutations
 from api.meals.tasks import MealTasks
@@ -18,12 +19,11 @@ async def event_listener():
         for i, event in enumerate(meals_subscription):
             data = event.data.decode("utf-8")
             meal = Meal.model_validate_json(data)
+            print("type: ", event.type)
 
             if event.type == "InsertMeal":
-                print("type: ", event.type)
-                statement, args = MealMutations.insert_meal(
-                    meal=meal
-                )
+                MealsEventHandler.handle_insert_event()
+                statement, args = MealMutations.insert_meal(meal=meal)
 
                 MealTasks.insert_meal.send(
                     statement=statement,

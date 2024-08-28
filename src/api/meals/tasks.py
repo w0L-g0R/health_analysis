@@ -11,7 +11,7 @@ client = TimescaleDbClient(connection=TIMESCALE_DB)
 class MealTasks:
     @dramatiq.actor(queue_name=MEALS_QUEUE)
     @staticmethod
-    def insert_meal(
+    def execute_insert_meal(
         statement: SQL,
         args: InsertMealArgs,
     ) -> None:
