@@ -1,6 +1,13 @@
 import os
 
+import psycopg2
 from dotenv import load_dotenv
+
+path = os.path.join(os.getcwd(), "pg_service.conf")
+
+print("path: ", path)
+
+os.environ["PGSERVICEFILE"] = path
 
 load_dotenv()
 
@@ -14,3 +21,6 @@ HEALTH_QUEUE = os.getenv("HEALTH_QUEUE")
 
 MEALS_TABLE = os.getenv("MEALS_TABLE")
 HEALTH_TABLE = os.getenv("HEALTH_TABLE")
+
+
+conn = psycopg2.connect(service="timescaledb")

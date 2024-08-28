@@ -23,7 +23,9 @@ async def event_listener():
 
             if event.type == "InsertMeal":
                 MealsEventHandler.handle_insert_event()
-                statement, args = MealMutations.insert_meal(meal=meal)
+                statement, args = MealMutations.insert_meal(
+                    meal=meal
+                )
 
                 MealTasks.insert_meal.send(
                     statement=statement,

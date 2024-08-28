@@ -3,8 +3,6 @@ from typing import Optional
 from psycopg2 import DatabaseError, Error, connect, sql
 from psycopg2.extensions import connection
 
-from api.meals.mutations import InsertMealArgs
-
 
 class TimescaleDbClient:
     def close(self) -> None:
@@ -21,7 +19,7 @@ class TimescaleDbClient:
             print(f"Unexpected error: {e}")
 
     def execute(
-        self, sql: sql.SQL, args: InsertMealArgs
+        self, sql: sql.SQL, args=None
     ) -> Optional[str]:
         try:
             with connect(self.connection) as conn:
