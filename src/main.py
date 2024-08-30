@@ -1,121 +1,18 @@
-import logging
-import sys
-from pathlib import Path
-from pprint import pprint
-
-import toml
-from dependency_injector import providers
-from dependency_injector.containers import (
-    DeclarativeContainer,
-)
-
-
-class Core(DeclarativeContainer):
-    config_file = Path(__file__).parent / "config.toml"
-    config = providers.Configuration()
-
-    logging = providers.Resource(
-        logging.basicConfig,
-        level=logging.INFO,
-        stream=sys.stdout,
-    )
-
-    @classmethod
-    def get_config_dict_from_toml_file(cls):
-        with open(cls.config_file, "r") as file:
-            data = toml.load(file)
-            return data
-
-    @classmethod
-    def configure(cls):
-        toml_data = cls.get_config_dict_from_toml_file()
-        print("toml_data: ", toml_data)
-
-        cls.config.from_dict(toml_data)
-
-        # logging_config = get_logging_config_from(toml_data)
-        # logging_config = {"logging": logging_config}
-        # print("\nconfig:\n")
-        # pprint(logging_config)
-
-        # cls.logging = providers.Resource(
-        #     logging.config.dictConfig,
-        #     config=logging_config,
-        # )
-
-        # pprint(
-        #     f"cls.logging: {cls.logging()}",
-        # )
-
-        # toml_data = {
-        #     "logging": {
-        #         "version": 1,
-        #         "formatters": {
-        #             "formatter": {
-        #                 "format": "[%(asctime)s] [%(levelname)s] [%(name)s]: %(message)s"
-        #             }
-        #         },
-        #         "handlers": {
-        #             "console": {
-        #                 "class": "logging.StreamHandler",
-        #                 "level": "DEBUG",
-        #                 "formatter": "formatter",
-        #                 "stream": "ext://sys.stderr",
-        #             }
-        #         },
-        #         "root": {
-        #             "level": "DEBUG",
-        #             "handlers": ["console"],
-        #         },
-        #     },
-        #     "databases": {},
-        #     "timescaledb": {
-        #         "host": "localhost",
-        #         "port": "5433",
-        #         "dbname": "meals",
-        #         "user": "user",
-        #         "password": "password",
-        #     },
-        # }
-
-        # cls.logging = await providers.Resource(
-        #     dictConfig,
-        #     config=toml_data["logging"],
-        # ).init()
-        # cls.logging = providers.Resource(
-        #     dictConfig,
-        #     config=toml_data["logging"],
-        # ).init()
-        # cls.logging.__init__()
-
-        # print("cls.logging: ", cls.logging)
-
-
-class ApplicationContainer(DeclarativeContainer):
-    core = providers.Container(Core)
-
-    config = providers.Configuration(
-        yaml_files=["config.yml"]
-    )
-
-    pass
+from container.app import AppContainer
+from container.core import Core
 
 
 def start():
     print("Started data store event listener")
 
-    Core.configure()
+    Core.setup()
 
-    pprint(f"Core.config: {Core.config}")
+    app = AppContainer()
+    app.core.init_resources()
+    app.wire(modules=[__name__])
+    app.check_dependencies()
 
     # asyncio.run(event_listener())
-    application = ApplicationContainer()
-    application.core.init_resources()
-    application.wire(modules=[__name__])
-
-    print(
-        "application.dependencies: ", application.dependencies
-    )
 
 
 if __name__ == "__main__":

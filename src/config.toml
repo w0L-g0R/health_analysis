@@ -17,7 +17,7 @@ handlers = ["console"]
 
 [databases]
 
-    [timescaledb]
+    [timescale]
     host="localhost"
     port="5433"
     dbname="meals"
