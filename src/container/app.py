@@ -1,3 +1,5 @@
+from logging.config import dictConfig
+
 from dependency_injector import providers
 from dependency_injector.containers import (
     DeclarativeContainer,
@@ -27,14 +29,12 @@ LOGGING_DICT = {
 class AppContainer(DeclarativeContainer):
     config = providers.Configuration()
 
-    # logging = providers.Resource(
-    #     dictConfig, config=config["logging"]
-    # )
+    logging = providers.Resource(
+        dictConfig, config=config.logging
+    )
 
     # core = providers.Container(Core, config=config)
     pools = providers.Container(Pools, config=config)
-
-    pass
 
 
 # class MealsRepository:

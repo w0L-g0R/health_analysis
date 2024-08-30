@@ -1,11 +1,19 @@
 import os
+from pathlib import Path
 
-import psycopg2
+import toml
 from dotenv import load_dotenv
 
 path = os.path.join(os.getcwd(), "pg_service.conf")
 
-print("path: ", path)
+
+def get_config_dict_from_toml(toml_config_file: str) -> dict:
+    with open(toml_config_file, "r") as file:
+        return toml.load(file)
+
+
+CONFIG_FILE = Path(__file__).parent / "config.toml"
+CONFIG = get_config_dict_from_toml(CONFIG_FILE)
 
 os.environ["PGSERVICEFILE"] = path
 
@@ -21,6 +29,3 @@ HEALTH_QUEUE = os.getenv("HEALTH_QUEUE")
 
 MEALS_TABLE = os.getenv("MEALS_TABLE")
 HEALTH_TABLE = os.getenv("HEALTH_TABLE")
-
-
-

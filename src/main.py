@@ -1,23 +1,10 @@
-import logging
-from pathlib import Path
+from pprint import pprint
 
-import toml
 from dependency_injector.wiring import Provide, inject
 from psycopg2.pool import SimpleConnectionPool
 
+from config import CONFIG
 from container.app import AppContainer
-
-
-def get_config_dict_from_toml(toml_config_file: str) -> dict:
-    with open(toml_config_file, "r") as file:
-        config_dict = toml.load(file)
-        print("config_dict: ", config_dict)
-
-        return config_dict
-
-
-CONFIG_FILE = Path(__file__).parent / "config.toml"
-CONFIG = get_config_dict_from_toml(CONFIG_FILE)
 
 
 @inject
@@ -34,14 +21,16 @@ def main(
 
 
 def start():
-    print("Starting app container")    print("CONFIG: ", CONFIG)
-
+    print("\nStart IOC container setup with config:\n")
+    pprint(
+        CONFIG,
+        indent=2,
+    )
 
     app = AppContainer(config=CONFIG)
     app.init_resources()
     app.wire(modules=[__name__])
     app.check_dependencies()
-    logging.debug("logging start")
 
     main()
     # asyncio.run(event_listener())
