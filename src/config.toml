@@ -1,0 +1,25 @@
+[logging]
+version = 1
+
+[logging.formatters.formatter]
+format = "[%(asctime)s] [%(levelname)s] [%(name)s]: %(message)s"
+
+[[logging.handlers]]
+class = "logging.StreamHandler"
+level = "DEBUG"
+formatter = "formatter"
+stream = "ext://sys.stderr"
+type = "console"
+
+[logging.root]
+level = "DEBUG"
+handlers = ["console"]
+
+[databases]
+
+    [timescaledb]
+    host="localhost"
+    port="5433"
+    dbname="meals"
+    user="user"
+    password="password"

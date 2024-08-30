@@ -23,4 +23,4 @@ MEALS_TABLE = os.getenv("MEALS_TABLE")
 HEALTH_TABLE = os.getenv("HEALTH_TABLE")
 
 
-conn = psycopg2.connect(service="timescaledb")
+

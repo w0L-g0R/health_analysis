@@ -1,13 +1,9 @@
 from uuid import uuid4
 
-from esdbclient import (
-    EventStoreDBClient,
-    NewEvent,
-    StreamState,
-)
+from esdbclient import EventStoreDBClient, NewEvent, StreamState
 from faker import Faker
 
-from api.meals.models import Meal
+from api.meals.domain.entities.meals.model import Meal
 
 print("---> START EVENTS")
 

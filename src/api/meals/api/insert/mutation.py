@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Callable, Tuple
 from uuid import UUID
 
-from api.meals.models import Meal
+from api.meals.domain.entities.meals.model import Meal
 
 
 @dataclass

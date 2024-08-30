@@ -10,9 +10,8 @@ authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 packages = [{include = "api", from="src"},{include = "tests"}]
 
-
 [tool.poetry.scripts]
-main = "src.main:run"
+main = "src.main:start"
 events = "tests.events:run"
 
 [tool.poetry.dependencies]
@@ -27,8 +26,12 @@ pydantic = "^2.8.2"
 dramatiq = {extras = ["rabbitmq", "redis", "watch"], version = "^1.17.0"}
 faker = "^28.0.0"
 psycopg2-binary = "^2.9.9"
-
+toml = "^0.10.2"
+dependency-injector = "4.42.0b1"
+pyaml = "^24.7.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+
