@@ -1,17 +1,49 @@
+import logging
+from pathlib import Path
+
+import toml
+from dependency_injector.wiring import Provide, inject
+from psycopg2.pool import SimpleConnectionPool
+
 from container.app import AppContainer
-from container.core import Core
+
+
+def get_config_dict_from_toml(toml_config_file: str) -> dict:
+    with open(toml_config_file, "r") as file:
+        config_dict = toml.load(file)
+        print("config_dict: ", config_dict)
+
+        return config_dict
+
+
+CONFIG_FILE = Path(__file__).parent / "config.toml"
+CONFIG = get_config_dict_from_toml(CONFIG_FILE)
+
+
+@inject
+def main(
+    timescale_db_pool: SimpleConnectionPool = Provide[
+        AppContainer.pools.timescale_db_pool
+    ],
+) -> None:
+    pool = next(timescale_db_pool)
+    print("pool: ", pool)
+
+    conn = pool.getconn()
+    print("conn: ", conn)
 
 
 def start():
-    print("Started data store event listener")
+    print("Starting app container")    print("CONFIG: ", CONFIG)
 
-    Core.setup()
 
-    app = AppContainer()
-    app.core.init_resources()
+    app = AppContainer(config=CONFIG)
+    app.init_resources()
     app.wire(modules=[__name__])
     app.check_dependencies()
+    logging.debug("logging start")
 
+    main()
     # asyncio.run(event_listener())
 
 
