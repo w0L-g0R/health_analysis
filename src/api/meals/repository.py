@@ -18,6 +18,9 @@ class MealsRepository:
                 f"Initialized meals repository {id(self)} with pool {id(self.pool)}",
             )
 
+    # def insert():
+    #     INSERT_MEAL
+
     def close(self):
         if self.pool:
             self.pool.closeall()

@@ -8,7 +8,7 @@ from esdbclient import (
 )
 from faker import Faker
 
-from api.meals.domain.entities.meals.model import Meal
+from api.meals.insert.model import Meal
 
 print("---> START EVENTS")
 

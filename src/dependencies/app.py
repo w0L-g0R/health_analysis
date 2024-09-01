@@ -11,9 +11,9 @@ from dependency_injector.providers import (
 from dramatiq.brokers.rabbitmq import RabbitmqBroker
 from esdbclient import EventStoreDBClient
 
-from api.dependencies.eventbus import EventBus
-from api.dependencies.pools import Pools
-from api.meals.infrastructure.repos.meals import Meals
+from api.meals.repository import Meals
+from dependencies.eventbus import EventBus
+from dependencies.pools import Pools
 
 
 class AppContainer(DeclarativeContainer):

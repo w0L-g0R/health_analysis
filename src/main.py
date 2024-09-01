@@ -5,10 +5,10 @@ from signal import SIGINT, SIGTERM, signal
 
 from dependency_injector.wiring import Provide, inject
 
-from api.dependencies.app import AppContainer
-from api.dependencies.eventbus import EventBus
-from api.meals.infrastructure.repos.meals import Meals
+from api.meals.repository import Meals
 from config import CONFIG
+from dependencies.app import AppContainer
+from dependencies.eventbus import EventBus
 
 logging.config.dictConfig(CONFIG["logging"])
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ async def handle_events(subscription, handler_name) -> None:
         try:
             for event in subscription:
                 logging.info(
-                    f"Received event from {id(subscription)}:\n{pformat(event, indent=2)}"
+                    f"Received event from subscription {id(subscription)}:\n{pformat(event, indent=2)}"
                 )
             # Prevent CPU overuse
             await asyncio.sleep(0.1)
