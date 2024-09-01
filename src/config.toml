@@ -1,3 +1,37 @@
+[dsn]
+
+    [dsn.timescaledb]
+    host="localhost"
+    port="5433"
+    dbname="meals"
+    user="user"
+    password="password"
+
+    [dsn.eventstoredb]
+    uri="esdb://localhost:2113?tls=false"
+
+    [dsn.rabbitmq]
+    url="amqp://guest:guest@127.0.0.1:5672"
+
+[queues]
+meals="meals_queue"
+supps="supps_queue"
+health="health_queue"
+
+[subscriptions]
+
+    [subscriptions.meals]
+        stream="meals_stream"
+        from_end=true
+
+    [subscriptions.health]
+        stream="health_stream"
+        from_end=true
+
+    [subscriptions.supps]
+        stream="supps_stream"
+        from_end=true
+
 [logging]
 version = 1
 
@@ -14,12 +48,3 @@ version = 1
     [logging.root]
     level = "DEBUG"
     handlers = ["console"]
-
-[databases]
-
-    [databases.timescale]
-    host="localhost"
-    port="5433"
-    dbname="meals"
-    user="user"
-    password="password"

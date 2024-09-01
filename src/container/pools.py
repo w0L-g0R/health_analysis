@@ -28,16 +28,5 @@ class Pools(DeclarativeContainer):
 
     timescale_db_pool = providers.Factory(
         init_timescale_db_pool,
-        config=config.databases.timescale,
+        config=config.dsn.timescaledb,
     )
-
-    # timescale_db_pool = providers.Factory(
-    #     SimpleConnectionPool,
-    #     minconn=1,  # Minimum number of connections in the pool
-    #     maxconn=10,  # Maximum number of connections in the pool
-    #     user=config.databases.timescale.user,
-    #     password=config.databases.timescale.password,
-    #     host=config.databases.timescale.host,
-    #     port=config.databases.timescale.port,
-    #     database=config.databases.timescale.dbname,
-    # )

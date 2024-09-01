@@ -1,40 +1,42 @@
 from logging.config import dictConfig
 
-from dependency_injector import providers
 from dependency_injector.containers import (
     DeclarativeContainer,
 )
+from dependency_injector.providers import (
+    Configuration,
+    Container,
+    Resource,
+    Singleton,
+)
+from esdbclient import EventStoreDBClient
 
+# from container.clients import EventBusClient
+from container.eventbus import EventBus
 from container.pools import Pools
-
-LOGGING_DICT = {
-    "version": 1,
-    "formatters": {
-        "formatter": {
-            "format": "[%(asctime)s] [%(levelname)s] [%(name)s]: %(message)s"
-        }
-    },
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "level": "DEBUG",
-            "formatter": "formatter",
-            "stream": "ext://sys.stderr",
-        }
-    },
-    "root": {"level": "DEBUG", "handlers": ["console"]},
-}
 
 
 class AppContainer(DeclarativeContainer):
-    config = providers.Configuration()
+    config = Configuration()
 
-    logging = providers.Resource(
-        dictConfig, config=config.logging
+    logging = Resource(dictConfig, config=config.logging)
+
+    # client = Container(EventBusClient, config=config)
+
+    client = Singleton(
+        EventStoreDBClient,
+        uri=config.dsn.eventstoredb.uri,
     )
 
-    # core = providers.Container(Core, config=config)
-    pools = providers.Container(Pools, config=config)
+    eventbus = Container(
+        EventBus,
+        config=config,
+        client=client,
+    )
+
+    pools = Container(Pools, config=config)
+
+    # event_handler =
 
 
 # class MealsRepository:
@@ -47,16 +49,17 @@ class AppContainer(DeclarativeContainer):
 
 
 # class MealsContainer(DeclarativeContainer):
-#     pool = providers.Dependency(
+#     pool = Dependency(
 #         instance_of=SimpleConnectionPool
 #     )
 
-#     repository = providers.Singleton(
+#     repository = Singleton(
 #         MealsRepository, pool=pool
 #     )
 
-#     # core = providers.Container(Core, config=config)
+#     # core = Container(Core, config=config)
 
-#     pools = providers.Container(Pools, config=config)
+#     pools = Container(Pools, config=config)
 
+#     pass
 #     pass
