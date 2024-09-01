@@ -1,80 +1,132 @@
 import asyncio
-from pprint import pprint
+import logging
+from pprint import pformat
+from signal import SIGINT, SIGTERM, signal
 
 from dependency_injector.wiring import Provide, inject
-from psycopg2.pool import SimpleConnectionPool
 
+from api.dependencies.app import AppContainer
+from api.dependencies.eventbus import EventBus
+from api.meals.infrastructure.repos.meals import Meals
 from config import CONFIG
-from container.app import AppContainer
-from container.eventbus import EventBus
 
-# async def subscribe_to_stream():
-#     async with client.subscribe_to_stream(stream_name) as subscription:
-#         while True:
-#             async for event in subscription:
-#                 print(f"Received event from {stream_name}: {event}")
-#             await asyncio.sleep(2)  # Prevent CPU overuse
+logging.config.dictConfig(CONFIG["logging"])
+logger = logging.getLogger(__name__)
+
+STOP_EVENT = asyncio.Event()
+FORMATTED_CONFIG = pformat(CONFIG, indent=4)
 
 
-@inject
-def test(
-    timescale_db_pool: SimpleConnectionPool = Provide[
-        AppContainer.pools.timescale_db_pool
-    ],
-) -> None:
-    #     pool = next(timescale_db_pool)
-    #     print("pool: ", pool)
-    #     conn = pool.getconn()
-    #     print("conn: ", conn)
-    return
+async def handle_events(subscription, handler_name) -> None:
+    logging.info(
+        f"Started listening to subscription: {id(subscription)}"
+    )
 
+    while not STOP_EVENT.is_set():
+        try:
+            for event in subscription:
+                logging.info(
+                    f"Received event from {id(subscription)}:\n{pformat(event, indent=2)}"
+                )
+            # Prevent CPU overuse
+            await asyncio.sleep(0.1)
 
-async def start_event_handler(subscription):
-    switch = True
-    while switch == True:
-        print(f"Received event from {subscription}")
-        switch = False
-        # await asyncio.sleep(2)
+        except Exception as e:
+            logging.error(f"Error while handling events: {e}")
+            await asyncio.sleep(0.1)
 
 
 @inject
 async def main(
     eventbus: EventBus = Provide[AppContainer.eventbus],
+    meals: Meals = Provide[AppContainer.meals],
 ):
-    subscription = eventbus.subscription.meals()
-    print("subscription: ", subscription)
-    # sub = client.subscribe_to_stream(stream_name="meals")
-    # print("client: ", client)
+    logging.info("Started async main()")
 
-    # sub = subscription.subscription()().subscribe_to_stream(
-    #     stream_name="meals"
-    # )
-    # print("sub: ", eventbus.subscription())
+    event_bus_client = eventbus.client()
 
-    # print("sub: ", sub)
-
-    await asyncio.gather(
-        # start_event_handler(
-        # subscriptions.subscription("meals")
-        # ),
+    logging.info(
+        "Resolved event bus client: %i", id(event_bus_client)
     )
 
-    # await client.client.close()
+    meals_subscription = eventbus.subscription.meals()
+
+    logging.info(
+        f"Resolved meals events subscription: {id(meals_subscription)} for {meals_subscription._stream_name}"
+    )
+
+    health_subscription = eventbus.subscription.health()
+
+    logging.info(
+        f"Resolved health events subscription: {id(health_subscription)} for {health_subscription._stream_name}"
+    )
+
+    meals.repository()
+    meals_event_handler = "handler"
+
+    try:
+        logging.info("Start handling incoming events")
+
+        await asyncio.gather(
+            handle_events(
+                meals_subscription, meals_event_handler
+            ),
+            handle_events(
+                health_subscription, meals_event_handler
+            ),
+        )
+
+    except KeyboardInterrupt:
+        logging.error("Application interrupted by keyboard.")
+
+    except Exception as e:
+        logging.error(f"Error in main loop: {e}")
+
+    finally:
+        STOP_EVENT.set()
+
+        logging.info(
+            f"Stopped asyncio event {id(STOP_EVENT)}: {STOP_EVENT.is_set()}"
+        )
+        await asyncio.sleep(0.25)
+
+        event_bus_client.close()
+
+        logging.info(
+            f"Closed event bus client {id(event_bus_client)}: {event_bus_client.is_closed}"
+        )
+
+        meals.repository().close()
 
 
 def start():
-    print("\nStart IOC container setup with config:\n")
-    pprint(
-        CONFIG,
+    logger.info(
+        f"\nStarting setup with config:\n{FORMATTED_CONFIG}\n"
     )
 
     app = AppContainer(config=CONFIG)
     app.init_resources()
     app.wire(modules=[__name__])
     app.check_dependencies()
-    # logging.info("\nCheck:\n")
 
-    # test()
+    logging.info(f"AppContainer set up: {id(app)}")
+
+    # Set up signals that stops the event loop in case of a container/pod shutdown
+    sigint_handler = signal(
+        SIGINT, lambda x: STOP_EVENT.set()
+    )
+    sigterm_handler = signal(
+        SIGTERM, lambda x: STOP_EVENT.set()
+    )
+
+    logging.info(
+        f"Shutdown signals for container shutdowns set up: {id(sigint_handler)}, {id(sigterm_handler)}"
+    )
+
+    logging.info(
+        f"Stopped asyncio event {id(STOP_EVENT)}: {STOP_EVENT.is_set()}"
+    )
+
     asyncio.run(main())
 
 

@@ -15,6 +15,7 @@ def get_config_dict_from_toml(toml_config_file: str) -> dict:
 CONFIG_FILE = Path(__file__).parent / "config.toml"
 CONFIG = get_config_dict_from_toml(CONFIG_FILE)
 
+
 os.environ["PGSERVICEFILE"] = path
 
 load_dotenv()

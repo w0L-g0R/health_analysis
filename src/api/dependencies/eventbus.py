@@ -37,14 +37,3 @@ class EventBus(DeclarativeContainer):
     subscription = Aggregate(
         health=health_subscription, meals=meals_subscription
     )
-    # health=Factory(
-    #     client.subscribe_to_stream,
-    #     stream_name=config.subscriptions.health.stream,
-    #     from_end=config.subscriptions.health.from_end,
-    # ),
-    # supps=Factory(
-    #     client.subscribe_to_stream,
-    #     stream_name=config.subscriptions.supps.stream,
-    #     from_end=config.subscriptions.supps.from_end,
-    # ),
-    # )
