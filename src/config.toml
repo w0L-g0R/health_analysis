@@ -14,9 +14,8 @@
     url="amqp://guest:guest@127.0.0.1:5672"
 
 [queues]
-meals="meals_queue"
-supps="supps_queue"
-health="health_queue"
+    [queues.meals]
+        insert="MealInsert"
 
 [subscriptions]
 
@@ -31,6 +30,10 @@ health="health_queue"
     [subscriptions.supps]
         stream="supps_stream"
         from_end=true
+
+[events]
+    [events.meals]
+        insert="MealInsert"
 
 [logging]
 version = 1

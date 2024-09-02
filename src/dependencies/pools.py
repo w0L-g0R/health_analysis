@@ -26,13 +26,11 @@ def init_timescale_db_pool(
         logging.info(f"Timescale DB pool created: {id(pool)}")
         return pool
     except Exception as e:
-        logging.error(
-            f"Error initializing connection pool: {e}"
-        )
+        logging.error(f"Error initializing connection pool: {e}")
         raise
 
 
-class Pools(DeclarativeContainer):
+class PoolsContainer(DeclarativeContainer):
     config = Configuration()
 
     timescale_db = Factory(

@@ -11,9 +11,10 @@ from dependency_injector.providers import (
 from dramatiq.brokers.rabbitmq import RabbitmqBroker
 from esdbclient import EventStoreDBClient
 
-from api.meals.repository import Meals
-from dependencies.eventbus import EventBus
-from dependencies.pools import Pools
+from api.meals.bootstrap import MealsContainer
+from api.utils.validator import Validator
+from dependencies.eventbus import EventBusContainer
+from dependencies.pools import PoolsContainer
 
 
 class AppContainer(DeclarativeContainer):
@@ -21,21 +22,27 @@ class AppContainer(DeclarativeContainer):
 
     logging = Resource(dictConfig, config=config.logging)
 
+    validator = Resource(Validator)
+
     eventbus_client = Resource(
         EventStoreDBClient,
         uri=config.dsn.eventstoredb.uri,
     )
 
-    broker = Resource(
-        RabbitmqBroker, url=config.dsn.rabbitmq.url
-    )
+    broker = Resource(RabbitmqBroker, url=config.dsn.rabbitmq.url)
 
     eventbus = Container(
-        EventBus,
+        EventBusContainer,
         config=config,
         client=eventbus_client,
     )
 
-    pools = Container(Pools, config=config)
+    pools = Container(PoolsContainer, config=config)
 
-    meals = Container(Meals, pool=pools.timescale_db)
+    meals = Container(
+        MealsContainer,
+        broker=broker,
+        pool=pools.timescale_db,
+        config=config,
+        validator=validator,
+    )

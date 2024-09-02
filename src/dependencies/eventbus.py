@@ -10,15 +10,13 @@ from dependency_injector.providers import (
 from esdbclient import EventStoreDBClient
 
 
-class EventBus(DeclarativeContainer):
+class EventBusContainer(DeclarativeContainer):
     config = Configuration()
 
     client = Dependency(instance_of=EventStoreDBClient)
 
     def subscription_factory(client, stream_name, from_end):
-        return client.subscribe_to_stream(
-            stream_name=stream_name, from_end=from_end
-        )
+        return client.subscribe_to_stream(stream_name=stream_name, from_end=from_end)
 
     meals_subscription = Factory(
         subscription_factory,
@@ -34,6 +32,4 @@ class EventBus(DeclarativeContainer):
         from_end=config.subscriptions.health.from_end,
     )
 
-    subscription = Aggregate(
-        health=health_subscription, meals=meals_subscription
-    )
+    subscription = Aggregate(health=health_subscription, meals=meals_subscription)
