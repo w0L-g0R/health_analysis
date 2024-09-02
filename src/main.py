@@ -39,9 +39,9 @@ async def handle_events(
 
                 match event.type:
                     case "MealInsert":
-                        _: MealInsertEventHandler = event_handler("insert_meal").handle(
-                            event
-                        )
+                        _: MealInsertEventHandler = await event_handler(
+                            "insert_meal"
+                        ).handle(event)
                     case _:
                         print("No matching type")
 
@@ -58,7 +58,7 @@ async def main(
     config: dict = Provide[AppContainer.config],
     eventbus: EventBusContainer = Provide[AppContainer.eventbus],
     broker: RabbitmqBroker = Provide[AppContainer.broker],
-    meals: MealsContainer = Provide[AppContainer.meals],
+    meals_container: MealsContainer = Provide[AppContainer.meals_container],
 ):
     logging.info("Started async main()")
 
@@ -79,13 +79,14 @@ async def main(
     )
 
     broker = broker
-    dramatiq.set_broker(broker)
 
     logging.info(f"Resolved broker: {id(broker)}")
 
-    meals.repository()
+    dramatiq.set_broker(broker)
 
-    meals_event_handler = meals.meals_event_handler
+    meals_container.repository()
+
+    meals_event_handler = meals_container.meals_event_handler
 
     logging.info(f"Resolved meals event handler: {id(meals_event_handler)}")
 
@@ -115,7 +116,7 @@ async def main(
             f"Closed event bus client {id(event_bus_client)}: {event_bus_client.is_closed}"
         )
 
-        meals.repository().close()
+        meals_container.repository().close()
 
 
 def start():

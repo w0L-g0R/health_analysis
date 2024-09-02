@@ -1,29 +1,28 @@
+from dataclasses import dataclass
 import logging
 
-from psycopg2.pool import SimpleConnectionPool
+from asyncpg import Pool
+
 
 # from psycopg2.errors.
+@dataclass
+class MealsMutations:
+    insert_statement = """ INSERT INTO meals (data) VALUES ($1);"""
 
 
 class MealsRepository:
-    insert_statement = """
-            INSERT INTO meals 
-                (time, meal_id, user_id, meal_name, calories) 
-                    VALUES (%s, %s, %s, %s, %s);
-            """
-
-    def __init__(self, pool: SimpleConnectionPool):
+    def __init__(self, pool: Pool):
         self.pool = pool
         if pool:
             logging.info(
                 f"Initialized meals repository {id(self)} with pool {id(self.pool)}",
             )
 
-    def execute(self, statement, **args):
+    async def execute(self, statement, data):
         try:
-            with self.pool.getconn() as conn:
-                with conn.cursor() as cursor:
-                    cursor.execute(statement, args)
+            async with self.pool.acquire() as connection:
+                async with connection.transaction():
+                    await connection.execute(statement, data)
 
         # except DataBaseError as e:
         #     logging.error(e)
@@ -32,11 +31,11 @@ class MealsRepository:
             logging.error(e)
 
         finally:
-            conn.close()
+            await connection.close()
 
     def close(self):
         if self.pool:
-            self.pool.closeall()
+            self.pool.close()
             logging.info(
                 f"Closed meals repository {id(self)} with pool {id(self.pool)}: {self.pool.closed}",
             )

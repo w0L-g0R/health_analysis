@@ -1,11 +1,7 @@
 [dsn]
 
     [dsn.timescaledb]
-    host="localhost"
-    port="5433"
-    dbname="meals"
-    user="user"
-    password="password"
+    dsn="postgres://user:password@localhost:5433"
 
     [dsn.eventstoredb]
     uri="esdb://localhost:2113?tls=false"

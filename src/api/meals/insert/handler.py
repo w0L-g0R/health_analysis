@@ -16,6 +16,7 @@ class MealInsertEventHandler:
         event_class: type[MealInsertEvent],
     ):
         self.event_class = event_class
+        print("self.event_class: ", self.event_class)
         self.queue_name = config["queues"]["meals"]["insert"]
 
         # actor = Actor(
@@ -32,12 +33,14 @@ class MealInsertEventHandler:
 
         pass
 
-    def handle(self, event: RecordedEvent):
+    async def handle(self, event: RecordedEvent):
         # Validate & Deserialize
-        event_data = self.validate_and_deserialize_json_data(event)
+        event_data: MealInsertEvent = self.validate_and_deserialize_json_data(
+            event_model=self.event_class, event=event
+        )
 
         # event_data = event.data.decode("utf-8")
-        print("event_data: ", event_data)
+        print("event_data: ", event_data.calories)
 
         # Map event data to SQL args
         # Pipeline
@@ -47,7 +50,7 @@ class MealInsertEventHandler:
         return
 
     def validate_and_deserialize_json_data(
-        event_model: MealInsertEvent, event: RecordedEvent
+        self, event_model: MealInsertEvent, event: RecordedEvent
     ) -> MealInsertEvent:
         try:
             return event_model.model_validate_json(event.data)
