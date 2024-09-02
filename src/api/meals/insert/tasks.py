@@ -2,7 +2,7 @@
 # from psycopg2.sql import SQL
 
 # from api.clients.timescale import TimescaleDbClient
-# from api.meals.mutations import InsertMealArgs
+# from api.meals.types import InsertMealArgs
 # from config import MEALS_QUEUE, TIMESCALE_DB
 
 # client = TimescaleDbClient(connection=TIMESCALE_DB)

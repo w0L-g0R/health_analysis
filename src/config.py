@@ -1,6 +1,22 @@
 import os
+from pathlib import Path
 
+import toml
 from dotenv import load_dotenv
+
+path = os.path.join(os.getcwd(), "pg_service.conf")
+
+
+def get_config_dict_from_toml(toml_config_file: str) -> dict:
+    with open(toml_config_file, "r") as file:
+        return toml.load(file)
+
+
+CONFIG_FILE = Path(__file__).parent / "config.toml"
+CONFIG = get_config_dict_from_toml(CONFIG_FILE)
+
+
+os.environ["PGSERVICEFILE"] = path
 
 load_dotenv()
 

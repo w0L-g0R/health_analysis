@@ -1,0 +1,49 @@
+[dsn]
+
+    [dsn.timescaledb]
+    dsn="postgres://user:password@localhost:5433"
+
+    [dsn.eventstoredb]
+    uri="esdb://localhost:2113?tls=false"
+
+    [dsn.rabbitmq]
+    url="amqp://guest:guest@127.0.0.1:5672"
+
+[queues]
+    [queues.meals]
+        insert="MealInsert"
+
+[subscriptions]
+
+    [subscriptions.meals]
+        stream="meals_stream"
+        from_end=true
+
+    [subscriptions.health]
+        stream="health_stream"
+        from_end=true
+
+    [subscriptions.supps]
+        stream="supps_stream"
+        from_end=true
+
+[events]
+    [events.meals]
+        insert="MealInsert"
+
+[logging]
+version = 1
+
+    [logging.formatters.formatter]
+    format = "[%(asctime)s] [%(levelname)s] [%(filename)s:%(funcName)s:%(lineno)d]: %(message)s"
+
+    [logging.handlers]
+        [logging.handlers.console]
+        class = "logging.StreamHandler"
+        level = "DEBUG"
+        formatter = "formatter"
+        stream = "ext://sys.stderr"
+
+    [logging.root]
+    level = "DEBUG"
+    handlers = ["console"]
