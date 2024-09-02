@@ -5,13 +5,10 @@ from asyncpg import Pool
 
 
 # from psycopg2.errors.
-@dataclass
-class MealsMutations:
-    insert_statement = """ INSERT INTO meals (data) VALUES ($1);"""
 
 
 class MealsRepository:
-    def __init__(self, pool: Pool):
+    def __init__(self, pool: Pool, mutations: MealsMutations):
         self.pool = pool
         if pool:
             logging.info(
@@ -23,9 +20,6 @@ class MealsRepository:
             async with self.pool.acquire() as connection:
                 async with connection.transaction():
                     await connection.execute(statement, data)
-
-        # except DataBaseError as e:
-        #     logging.error(e)
 
         except Exception as e:
             logging.error(e)
