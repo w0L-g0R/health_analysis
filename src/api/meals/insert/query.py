@@ -1,7 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
 from typing import Tuple
-from uuid import uuid4
 
 
 @dataclass

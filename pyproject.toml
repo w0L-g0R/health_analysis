@@ -11,7 +11,7 @@ readme = "README.md"
 packages = [{include = "api", from="src"},{include = "tests"}]
 
 [tool.poetry.scripts]
-main = "src.main:start"
+main = "src"
 events = "tests.events:run"
 
 [tool.poetry.dependencies]

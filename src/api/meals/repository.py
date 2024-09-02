@@ -8,7 +8,7 @@ from asyncpg import Pool
 
 
 class MealsRepository:
-    def __init__(self, pool: Pool, mutations: MealsMutations):
+    def __init__(self, pool: Pool):
         self.pool = pool
         if pool:
             logging.info(
@@ -27,9 +27,9 @@ class MealsRepository:
         finally:
             await connection.close()
 
-    def close(self):
+    async def close(self):
         if self.pool:
-            self.pool.close()
+            await self.pool.close()
             logging.info(
                 f"Closed meals repository {id(self)} with pool {id(self.pool)}: {self.pool.closed}",
             )

@@ -2,10 +2,9 @@ from dependency_injector.containers import (
     DeclarativeContainer,
 )
 from dependency_injector.providers import (
-    Aggregate,
+    Singleton,
     Configuration,
     Dependency,
-    Factory,
 )
 from esdbclient import CatchupSubscription, EventStoreDBClient
 
@@ -20,18 +19,18 @@ class EventBusContainer(DeclarativeContainer):
     ) -> CatchupSubscription:
         return client.subscribe_to_stream(stream_name=stream_name, from_end=from_end)
 
-    meals_subscription = Factory(
+    meals_subscription = Singleton(
         subscription_factory,
         client=client,
         stream_name=config.subscriptions.meals.stream,
         from_end=config.subscriptions.meals.from_end,
     )
 
-    health_subscription = Factory(
+    health_subscription = Singleton(
         subscription_factory,
         client=client,
         stream_name=config.subscriptions.health.stream,
         from_end=config.subscriptions.health.from_end,
     )
 
-    subscription = Aggregate(health=health_subscription, meals=meals_subscription)
+    # subscription = Aggregate(health=health_subscription, meals=meals_subscription)
