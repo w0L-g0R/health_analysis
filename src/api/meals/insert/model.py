@@ -4,7 +4,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 
-class Meal(BaseModel):
+class MealInsertModel(BaseModel):
     time: datetime
     meal_id: UUID
     user_id: UUID

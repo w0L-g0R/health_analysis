@@ -1,8 +1,10 @@
+import json
+from typing import Type
 from pydantic import BaseModel, ValidationError
 
 
 class Validator:
-    def validate(data: dict, model: BaseModel) -> BaseModel:
+    def validate(self, data: json, model: Type) -> Type:
         """
         Validate the provided data against the given Pydantic model.
 
@@ -12,7 +14,7 @@ class Validator:
         :raises ValidationError: If validation fails.
         """
         try:
-            validated_data = model(**data)
+            validated_data = model.model_validate_json(data)
             return validated_data
 
         except ValidationError as e:

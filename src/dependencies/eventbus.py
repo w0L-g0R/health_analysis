@@ -7,7 +7,7 @@ from dependency_injector.providers import (
     Dependency,
     Factory,
 )
-from esdbclient import EventStoreDBClient
+from esdbclient import CatchupSubscription, EventStoreDBClient
 
 
 class EventBusContainer(DeclarativeContainer):
@@ -15,7 +15,9 @@ class EventBusContainer(DeclarativeContainer):
 
     client = Dependency(instance_of=EventStoreDBClient)
 
-    def subscription_factory(client, stream_name, from_end):
+    def subscription_factory(
+        client, stream_name: str, from_end: bool
+    ) -> CatchupSubscription:
         return client.subscribe_to_stream(stream_name=stream_name, from_end=from_end)
 
     meals_subscription = Factory(

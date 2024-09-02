@@ -2,16 +2,20 @@ import asyncio
 import logging
 from pprint import pformat
 from signal import SIGINT, SIGTERM, signal
+from typing import Union
 
 from dependency_injector.wiring import Provide, inject
 import dramatiq
 
 from api.meals.bootstrap import MealsContainer
+from api.meals.insert.handler import MealInsertEventHandler
 from config import CONFIG
 from dependencies.app import AppContainer
 from dependencies.eventbus import EventBusContainer
 from dramatiq.brokers.rabbitmq import RabbitmqBroker
+from esdbclient import CatchupSubscription
 
+from dependency_injector.providers import Aggregate
 
 logging.config.dictConfig(CONFIG["logging"])
 logger = logging.getLogger(__name__)
@@ -20,7 +24,10 @@ STOP_EVENT = asyncio.Event()
 FORMATTED_CONFIG = pformat(CONFIG, indent=4)
 
 
-async def handle_events(subscription, event_handler) -> None:
+async def handle_events(
+    subscription: CatchupSubscription,
+    event_handler: Union[Aggregate[MealInsertEventHandler]],
+) -> None:
     logging.info(f"Started listening to subscription: {id(subscription)}")
 
     while not STOP_EVENT.is_set():
@@ -32,8 +39,9 @@ async def handle_events(subscription, event_handler) -> None:
 
                 match event.type:
                     case "MealInsert":
-                        event_handler("insert_meal").handle(event)
-                        # default pattern
+                        _: MealInsertEventHandler = event_handler("insert_meal").handle(
+                            event
+                        )
                     case _:
                         print("No matching type")
 
@@ -41,7 +49,7 @@ async def handle_events(subscription, event_handler) -> None:
             await asyncio.sleep(0.1)
 
         except Exception as e:
-            logging.error(f"Error while handling events: {e}")
+            logging.error(f"Error while handling events:\n{e}")
             await asyncio.sleep(0.1)
 
 
@@ -78,7 +86,6 @@ async def main(
     meals.repository()
 
     meals_event_handler = meals.meals_event_handler
-    # handler = meals_event_handler("insert_meal")
 
     logging.info(f"Resolved meals event handler: {id(meals_event_handler)}")
 
