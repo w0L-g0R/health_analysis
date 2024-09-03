@@ -1,10 +1,12 @@
 from datetime import datetime, timezone
+from dependencies.app import AppContainer
 from dramatiq import Actor, Message, actor
 from dramatiq.brokers.rabbitmq import RabbitmqBroker
 
 from api.meals.insert.event import MealInsertEvent
 from api.meals.insert.query import MealInsertQuery
 from api.meals.repository import MealsRepository
+from dependency_injector.wiring import Provide, inject
 
 
 class MealInsertEventHandler:
@@ -43,5 +45,9 @@ class MealInsertEventHandler:
 
 
 @actor
-def process_insert_meal_event(event_data: Message):
+@inject
+def process_insert_meal_event(
+    event_data: Message,
+    event_handler=Provide[AppContainer.meals_container.event_handler],
+):
     handler.process(event_data)
