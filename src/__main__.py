@@ -3,16 +3,16 @@ import logging
 from pprint import pformat
 from signal import SIGINT, SIGTERM, signal
 
-from api.meals.insert.handler import MealInsertEventHandler, process_insert_meal_event
-from api.meals.repository import MealsRepository
-from dependency_injector.wiring import Provide, inject
 import dramatiq
+from dependency_injector.wiring import Provide, inject
+from esdbclient import CatchupSubscription
 
+from api.meals.insert.handler import MealInsertEventHandler
+from api.meals.insert.tasks import process_insert_meal_event
+from api.meals.repository import MealsRepository
 from config import CONFIG
 from dependencies.app import AppContainer
 from dependencies.eventbus import EventBusContainer
-from esdbclient import CatchupSubscription
-
 
 logging.config.dictConfig(CONFIG["logging"])
 logger = logging.getLogger(__name__)
@@ -43,7 +43,9 @@ async def handle_events(
     ],
 ):
     while not STOP_EVENT.is_set():
-        logging.info(f"Start listening to events of subscription {id(subscription)}")
+        logging.info(
+            f"Start listening to events of subscription {id(subscription)}"
+        )
 
         try:
             for event in subscription:
@@ -56,7 +58,7 @@ async def handle_events(
                         # await insert_event_handler.validate_and_serialize(event)
                         # insert_event_handler.process(event.data.decode("utf-8"))
                         process_insert_meal_event.send(
-                            insert_event_handler, event.data.decode("utf-8")
+                            event.data.decode("utf-8"),
                         )
                         # process(event.data.decode("utf-8"))
                     case _:
@@ -72,14 +74,18 @@ async def handle_events(
 
 @inject
 async def shutdown(
-    eventbus_client: EventBusContainer = Provide[AppContainer.eventbus_client],
+    eventbus_client: EventBusContainer = Provide[
+        AppContainer.eventbus_client
+    ],
     meals_repository: MealsRepository = Provide[
         AppContainer.meals_container.repository
     ],
 ):
     STOP_EVENT.set()
 
-    logging.info(f"Stopped asyncio event {id(STOP_EVENT)}: {STOP_EVENT.is_set()}")
+    logging.info(
+        f"Stopped asyncio event {id(STOP_EVENT)}: {STOP_EVENT.is_set()}"
+    )
     await asyncio.sleep(0.25)
 
     eventbus_client.close()
@@ -102,15 +108,21 @@ async def start_event_subscriptons(
         )
 
     except Exception as e:
-        logging.error(f"Error in start_event_subscriptons: {e}")
+        logging.error(
+            f"Error in start_event_subscriptons: {e}"
+        )
 
     finally:
         await shutdown()
 
 
 def main():
-    logger.info(f"\nStarting setup with config:\n{FORMATTED_CONFIG}\n")
-    logger.info(f"Stopped asyncio event {id(STOP_EVENT)}: {STOP_EVENT.is_set()}")
+    logger.info(
+        f"\nStarting setup with config:\n{FORMATTED_CONFIG}\n"
+    )
+    logger.info(
+        f"Stopped asyncio event {id(STOP_EVENT)}: {STOP_EVENT.is_set()}"
+    )
 
     app = AppContainer(config=CONFIG)
     app.init_resources()

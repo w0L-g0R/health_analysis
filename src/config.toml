@@ -12,6 +12,10 @@
 
     [dsn.rabbitmq]
     url="amqp://guest:guest@127.0.0.1:5672"
+    user="guest"
+    password="guest"
+    host="127.0.0.1"
+    port="5672"
 
 [databases]
     meals="meals"
