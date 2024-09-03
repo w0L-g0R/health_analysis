@@ -20,17 +20,9 @@ class MealsContainer(DeclarativeContainer):
 
     broker = Dependency(instance_of=RabbitmqBroker)
 
-    repository = Dependency(MealsRepository)
+    actor = Dependency(instance_of=Actor)
 
-    actor = Factory(
-        Actor,
-        fn=lambda x: x,
-        actor_name="",
-        queue_name="",
-        broker=broker,
-        priority=10,
-        options={},
-    )
+    repository = Dependency(MealsRepository)
 
     insert_event_handler = Singleton(
         MealInsertEventHandler,

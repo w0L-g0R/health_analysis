@@ -4,9 +4,10 @@ from dependencies.connections import init_async_timescale_db_pool
 from dependency_injector.containers import (
     DeclarativeContainer,
 )
-from dependency_injector.providers import Singleton
+from dependency_injector.providers import Singleton, Factory
 
 from dependency_injector.providers import Configuration, Container, Resource
+from dramatiq import Actor
 from dramatiq.brokers.rabbitmq import RabbitmqBroker
 from esdbclient import EventStoreDBClient
 
@@ -27,6 +28,16 @@ class AppContainer(DeclarativeContainer):
 
     broker = Resource(RabbitmqBroker, url=config.dsn.rabbitmq.url)
 
+    actor = Factory(
+        Actor,
+        fn=lambda x: x,
+        actor_name="",
+        queue_name="",
+        broker=broker,
+        priority=10,
+        options={},
+    )
+
     eventbus = Resource(
         EventBusContainer,
         config=config,
@@ -44,6 +55,7 @@ class AppContainer(DeclarativeContainer):
     meals_container = Container(
         MealsContainer,
         broker=broker,
+        actor=actor,
         repository=meals_repository,
         config=config,
     )
