@@ -1,10 +1,9 @@
 import asyncio
-import json
 import logging
 from pprint import pformat
 from signal import SIGINT, SIGTERM, signal
 
-from api.meals.insert.handler import MealInsertEventHandler
+from api.meals.insert.handler import MealInsertEventHandler, process_insert_meal_event
 from api.meals.repository import MealsRepository
 from dependency_injector.wiring import Provide, inject
 import dramatiq
@@ -22,18 +21,18 @@ STOP_EVENT = asyncio.Event()
 FORMATTED_CONFIG = pformat(CONFIG, indent=4)
 
 
-@dramatiq.actor()
-def process(event_data):
-    print("DIRECT event_data: ", event_data)
-    # _ = self.event_class.model_validate(event_data)
+# @dramatiq.actor()
+# def process(event_data):
+#     print("DIRECT event_data: ", event_data)
+#     # _ = self.event_class.model_validate(event_data)
 
-    # statement, args = self.query.insert_meal(
-    #     time=datetime.now(timezone.utc),
-    #     meal_id=_.meal_id,
-    #     user_id=_.user_id,
-    #     meal_name=_.meal_name,
-    #     calories=_.calories,
-    # )
+#     # statement, args = self.query.insert_meal(
+#     #     time=datetime.now(timezone.utc),
+#     #     meal_id=_.meal_id,
+#     #     user_id=_.user_id,
+#     #     meal_name=_.meal_name,
+#     #     calories=_.calories,
+#     # )
 
 
 @inject
@@ -55,8 +54,11 @@ async def handle_events(
                 match event.type:
                     case "MealInsert":
                         # await insert_event_handler.validate_and_serialize(event)
-                        insert_event_handler.process(event.data.decode("utf-8"))
-                        process(event.data.decode("utf-8"))
+                        # insert_event_handler.process(event.data.decode("utf-8"))
+                        process_insert_meal_event.send(
+                            insert_event_handler, event.data.decode("utf-8")
+                        )
+                        # process(event.data.decode("utf-8"))
                     case _:
                         print("No matching type")
 
