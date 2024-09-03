@@ -28,8 +28,6 @@ async def handle_events(
         AppContainer.meals_container.insert_event_handler
     ],
 ):
-    logging.info(f"Started listening to subscription: {id(subscription)}")
-
     while not STOP_EVENT.is_set():
         try:
             for event in subscription:
@@ -47,9 +45,8 @@ async def handle_events(
             await asyncio.sleep(0.1)
 
         except Exception as e:
-            logging.error(f"Error while handling events:\n{e}")
+            logging.error(f"Error in handle_events:{e}")
             raise e
-            await asyncio.sleep(0.1)
 
 
 @inject
@@ -76,15 +73,13 @@ async def start_event_subscriptons(
     eventbus=Provide[AppContainer.eventbus],
 ):
     try:
-        logging.info("Start handling incoming events")
-
         await asyncio.gather(
             handle_events(eventbus.meals_subscription()),
             # handle_events(health_subscription, meals_event_handler),
         )
 
     except Exception as e:
-        logging.error(f"Error in main loop: {e}")
+        logging.error(f"Error in start_event_subscriptons: {e}")
 
     finally:
         await shutdown()
@@ -104,10 +99,6 @@ if __name__ == "__main__":
     # Set up signals that stops the event loop in case of a container/pod shutdown
     sigint_handler = signal(SIGINT, lambda x: STOP_EVENT.set())
     sigterm_handler = signal(SIGTERM, lambda x: STOP_EVENT.set())
-
-    logging.info(
-        f"Shutdown signals for container shutdowns set up: {id(sigint_handler)}, {id(sigterm_handler)}"
-    )
 
     dramatiq.set_broker(app.broker())
 

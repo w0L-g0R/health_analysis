@@ -2,12 +2,19 @@
 
     [dsn.timescaledb]
     dsn="postgres://user:password@localhost:5433"
+    user="user"
+    password="password"
+    host="localhost"
+    port="5433"
 
     [dsn.eventstoredb]
     uri="esdb://localhost:2113?tls=false"
 
     [dsn.rabbitmq]
     url="amqp://guest:guest@127.0.0.1:5672"
+
+[databases]
+    meals="meals"
 
 [queues]
     [queues.meals]

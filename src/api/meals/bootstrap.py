@@ -39,5 +39,5 @@ class MealsContainer(DeclarativeContainer):
         repository=repository,
         actor=actor,
         event_class=Object(MealInsertEvent),
-        sql_statement=Object(MealInsertQuery),
+        query=Object(MealInsertQuery),
     )

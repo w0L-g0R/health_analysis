@@ -16,11 +16,11 @@ class MealInsertEventHandler:
         actor: Actor,
         event_class: type[MealInsertEvent],
         repository: MealsRepository,
-        sql_statement: MealInsertQuery,
+        query: MealInsertQuery,
     ):
         self.event_class = event_class
         self.repository = repository
-        self.sql_statement = sql_statement
+        self.query = query
 
         actor.fn = self.handle
         actor.actor_name = MealInsertEventHandler.__name__
@@ -32,14 +32,14 @@ class MealInsertEventHandler:
         pass
 
     async def handle(self, event: RecordedEvent):
-        data = self.event_class.model_validate_json(event.data)
+        _ = self.event_class.model_validate_json(event.data)
 
-        self.repository.execute(
-            self.sql_statement(
-                time=datetime.now(timezone.utc),
-                meal_id=data.meal_id,
-                user_id=data.user_id,
-                meal_name=data.meal_name,
-                calories=data.meal_name,
-            )
+        statement, args = self.query.insert_meal(
+            time=datetime.now(timezone.utc),
+            meal_id=_.meal_id,
+            user_id=_.user_id,
+            meal_name=_.meal_name,
+            calories=_.calories,
         )
+
+        await self.repository.execute(statement, args)

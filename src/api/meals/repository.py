@@ -1,10 +1,6 @@
-from dataclasses import dataclass
 import logging
 
 from asyncpg import Pool
-
-
-# from psycopg2.errors.
 
 
 class MealsRepository:
@@ -15,11 +11,11 @@ class MealsRepository:
                 f"Initialized meals repository {id(self)} with pool {id(self.pool)}",
             )
 
-    async def execute(self, statement, data):
+    async def execute(self, statement: str, args: tuple):
         try:
             async with self.pool.acquire() as connection:
                 async with connection.transaction():
-                    await connection.execute(statement, data)
+                    await connection.execute(statement, *args)
 
         except Exception as e:
             logging.error(e)

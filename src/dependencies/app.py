@@ -4,7 +4,7 @@ from dependencies.connections import init_async_timescale_db_pool
 from dependency_injector.containers import (
     DeclarativeContainer,
 )
-from dependency_injector.providers import Factory, Singleton
+from dependency_injector.providers import Singleton
 
 from dependency_injector.providers import Configuration, Container, Resource
 from dramatiq.brokers.rabbitmq import RabbitmqBroker
@@ -27,15 +27,19 @@ class AppContainer(DeclarativeContainer):
 
     broker = Resource(RabbitmqBroker, url=config.dsn.rabbitmq.url)
 
-    eventbus = Singleton(
+    eventbus = Resource(
         EventBusContainer,
         config=config,
         client=eventbus_client,
     )
 
-    timescale_db_pool = Factory(init_async_timescale_db_pool, config=config)
+    meals_pool = Singleton(
+        init_async_timescale_db_pool,
+        config=config.dsn.timescaledb,
+        database=config.databases.meals,
+    )
 
-    meals_repository = Singleton(MealsRepository, pool=timescale_db_pool)
+    meals_repository = Singleton(MealsRepository, pool=meals_pool)
 
     meals_container = Container(
         MealsContainer,
