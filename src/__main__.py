@@ -29,6 +29,8 @@ async def handle_events(
     ],
 ):
     while not STOP_EVENT.is_set():
+        logging.info(f"Start listening to events of subscription {id(subscription)}")
+
         try:
             for event in subscription:
                 logging.info(
@@ -37,7 +39,7 @@ async def handle_events(
 
                 match event.type:
                     case "MealInsert":
-                        await insert_event_handler.handle(event)
+                        await insert_event_handler.handle.send(event)
                     case _:
                         print("No matching type")
 
@@ -52,7 +54,9 @@ async def handle_events(
 @inject
 async def shutdown(
     eventbus_client: EventBusContainer = Provide[AppContainer.eventbus_client],
-    meals_repository: MealsRepository = Provide[AppContainer.meals_repository],
+    meals_repository: MealsRepository = Provide[
+        AppContainer.meals_container.repository
+    ],
 ):
     STOP_EVENT.set()
 

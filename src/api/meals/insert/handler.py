@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from dramatiq import Actor
+from dramatiq import Actor, actor
 from dramatiq.brokers.rabbitmq import RabbitmqBroker
 from esdbclient import RecordedEvent
 
@@ -27,10 +27,10 @@ class MealInsertEventHandler:
         actor.queue_name = config["queues"]["meals"]["insert"]
 
         broker.declare_actor(actor)
-        print("broker.get_declared_actors(): ", broker.get_declared_actors())
 
         pass
 
+    @actor
     async def handle(self, event: RecordedEvent):
         _ = self.event_class.model_validate_json(event.data)
 

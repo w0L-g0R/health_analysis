@@ -1,4 +1,5 @@
 from api.meals.insert.query import MealInsertQuery
+from dependencies.connections import init_async_timescale_db_pool
 from dramatiq import Actor
 from dramatiq.brokers.rabbitmq import RabbitmqBroker
 
@@ -6,7 +7,7 @@ from dependency_injector.containers import (
     DeclarativeContainer,
 )
 
-from dependency_injector.providers import Factory, Object, Singleton
+from dependency_injector.providers import Object, Singleton
 
 from dependency_injector.providers import Dependency, Configuration
 
@@ -22,7 +23,13 @@ class MealsContainer(DeclarativeContainer):
 
     actor = Dependency(instance_of=Actor)
 
-    repository = Dependency(MealsRepository)
+    pool = Singleton(
+        init_async_timescale_db_pool,
+        config=config.dsn.timescaledb,
+        database=config.databases.meals,
+    )
+
+    repository = Singleton(MealsRepository, pool=pool)
 
     insert_event_handler = Singleton(
         MealInsertEventHandler,

@@ -44,18 +44,9 @@ class AppContainer(DeclarativeContainer):
         client=eventbus_client,
     )
 
-    meals_pool = Singleton(
-        init_async_timescale_db_pool,
-        config=config.dsn.timescaledb,
-        database=config.databases.meals,
-    )
-
-    meals_repository = Singleton(MealsRepository, pool=meals_pool)
-
     meals_container = Container(
         MealsContainer,
         broker=broker,
         actor=actor,
-        repository=meals_repository,
         config=config,
     )
