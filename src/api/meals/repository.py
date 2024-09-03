@@ -24,12 +24,9 @@ class MealsRepository:
         except Exception as e:
             logging.error(e)
 
-        finally:
-            await connection.close()
-
     async def close(self):
         if self.pool:
             await self.pool.close()
             logging.info(
-                f"Closed meals repository {id(self)} with pool {id(self.pool)}: {self.pool.closed}",
+                f"Closed meals repository {id(self)} with pool {id(self.pool)}: {self.pool._closed}",
             )

@@ -8,7 +8,6 @@ from api.meals.repository import MealsRepository
 from dependency_injector.wiring import Provide, inject
 import dramatiq
 
-from api.meals.bootstrap import MealsContainer
 from config import CONFIG
 from dependencies.app import AppContainer
 from dependencies.eventbus import EventBusContainer
@@ -49,6 +48,7 @@ async def handle_events(
 
         except Exception as e:
             logging.error(f"Error while handling events:\n{e}")
+            raise e
             await asyncio.sleep(0.1)
 
 
@@ -65,7 +65,7 @@ async def shutdown(
     eventbus_client.close()
 
     logging.info(
-        f"Closed event bus client {id(eventbus_client)}: {eventbus_client.is_closed}"
+        f"Closed event bus client {id(eventbus_client)}: {eventbus_client._is_closed}"
     )
 
     await meals_repository.close()
@@ -82,9 +82,6 @@ async def start_event_subscriptons(
             handle_events(eventbus.meals_subscription()),
             # handle_events(health_subscription, meals_event_handler),
         )
-
-    except KeyboardInterrupt:
-        logging.error("Application interrupted by keyboard.")
 
     except Exception as e:
         logging.error(f"Error in main loop: {e}")
@@ -116,4 +113,8 @@ if __name__ == "__main__":
 
     logging.info(f"Broker set up: {dramatiq.get_broker()}")
 
-    asyncio.run(start_event_subscriptons())
+    try:
+        asyncio.run(start_event_subscriptons())
+
+    except KeyboardInterrupt:
+        logging.error("Application interrupted by keyboard.")

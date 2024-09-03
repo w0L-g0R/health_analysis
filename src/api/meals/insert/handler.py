@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from dramatiq import Actor
 from dramatiq.brokers.rabbitmq import RabbitmqBroker
 from esdbclient import RecordedEvent
@@ -35,7 +36,7 @@ class MealInsertEventHandler:
 
         self.repository.execute(
             self.sql_statement(
-                time=data.time,
+                time=datetime.now(timezone.utc),
                 meal_id=data.meal_id,
                 user_id=data.user_id,
                 meal_name=data.meal_name,
