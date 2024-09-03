@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 from pprint import pformat
 from signal import SIGINT, SIGTERM, signal
@@ -21,6 +22,20 @@ STOP_EVENT = asyncio.Event()
 FORMATTED_CONFIG = pformat(CONFIG, indent=4)
 
 
+@dramatiq.actor()
+def process(event_data):
+    print("DIRECT event_data: ", event_data)
+    # _ = self.event_class.model_validate(event_data)
+
+    # statement, args = self.query.insert_meal(
+    #     time=datetime.now(timezone.utc),
+    #     meal_id=_.meal_id,
+    #     user_id=_.user_id,
+    #     meal_name=_.meal_name,
+    #     calories=_.calories,
+    # )
+
+
 @inject
 async def handle_events(
     subscription: CatchupSubscription,
@@ -39,7 +54,9 @@ async def handle_events(
 
                 match event.type:
                     case "MealInsert":
-                        await insert_event_handler.handle.send(event)
+                        # await insert_event_handler.validate_and_serialize(event)
+                        insert_event_handler.process(event.data.decode("utf-8"))
+                        process(event.data.decode("utf-8"))
                     case _:
                         print("No matching type")
 
@@ -89,7 +106,7 @@ async def start_event_subscriptons(
         await shutdown()
 
 
-if __name__ == "__main__":
+def main():
     logger.info(f"\nStarting setup with config:\n{FORMATTED_CONFIG}\n")
     logger.info(f"Stopped asyncio event {id(STOP_EVENT)}: {STOP_EVENT.is_set()}")
 
@@ -101,10 +118,12 @@ if __name__ == "__main__":
     logging.info(f"AppContainer set up: {id(app)}")
 
     # Set up signals that stops the event loop in case of a container/pod shutdown
-    sigint_handler = signal(SIGINT, lambda x: STOP_EVENT.set())
-    sigterm_handler = signal(SIGTERM, lambda x: STOP_EVENT.set())
+    signal(SIGINT, lambda x: STOP_EVENT.set())
+    signal(SIGTERM, lambda x: STOP_EVENT.set())
 
-    dramatiq.set_broker(app.broker())
+    broker = app.broker()
+
+    dramatiq.set_broker(broker)
 
     logging.info(f"Broker set up: {dramatiq.get_broker()}")
 
@@ -113,3 +132,7 @@ if __name__ == "__main__":
 
     except KeyboardInterrupt:
         logging.error("Application interrupted by keyboard.")
+
+
+if __name__ == "__main__":
+    main()

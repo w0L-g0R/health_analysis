@@ -12,7 +12,6 @@ from dramatiq.brokers.rabbitmq import RabbitmqBroker
 from esdbclient import EventStoreDBClient
 
 from api.meals.bootstrap import MealsContainer
-from api.meals.repository import MealsRepository
 from dependencies.eventbus import EventBusContainer
 
 
