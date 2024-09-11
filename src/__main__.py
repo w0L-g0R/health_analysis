@@ -8,7 +8,6 @@ from dependency_injector.wiring import Provide, inject
 from esdbclient import CatchupSubscription
 
 from api.meals.insert.handler import MealInsertEventHandler
-from api.meals.insert.tasks import process_insert_meal_event
 from api.meals.repository import MealsRepository
 from config import CONFIG
 from dependencies.app import AppContainer
@@ -21,26 +20,9 @@ STOP_EVENT = asyncio.Event()
 FORMATTED_CONFIG = pformat(CONFIG, indent=4)
 
 
-# @dramatiq.actor()
-# def process(event_data):
-#     print("DIRECT event_data: ", event_data)
-#     # _ = self.event_class.model_validate(event_data)
-
-#     # statement, args = self.query.insert_meal(
-#     #     time=datetime.now(timezone.utc),
-#     #     meal_id=_.meal_id,
-#     #     user_id=_.user_id,
-#     #     meal_name=_.meal_name,
-#     #     calories=_.calories,
-#     # )
-
-
 @inject
-async def handle_events(
+def handle_events(
     subscription: CatchupSubscription,
-    insert_event_handler: MealInsertEventHandler = Provide[
-        AppContainer.meals_container.insert_event_handler
-    ],
 ):
     while not STOP_EVENT.is_set():
         logging.info(
@@ -57,15 +39,16 @@ async def handle_events(
                     case "MealInsert":
                         # await insert_event_handler.validate_and_serialize(event)
                         # insert_event_handler.process(event.data.decode("utf-8"))
-                        process_insert_meal_event.send(
-                            event.data.decode("utf-8"),
-                        )
+                        # process_insert_meal_event.send(
+                        #     event.data.decode("utf-8"),
+                        # )
+                        pass
                         # process(event.data.decode("utf-8"))
                     case _:
                         print("No matching type")
 
             # Prevent CPU overuse
-            await asyncio.sleep(0.1)
+            # await asyncio.sleep(0.1)
 
         except Exception as e:
             logging.error(f"Error in handle_events:{e}")
@@ -73,7 +56,7 @@ async def handle_events(
 
 
 @inject
-async def shutdown(
+def shutdown(
     eventbus_client: EventBusContainer = Provide[
         AppContainer.eventbus_client
     ],
@@ -86,7 +69,7 @@ async def shutdown(
     logging.info(
         f"Stopped asyncio event {id(STOP_EVENT)}: {STOP_EVENT.is_set()}"
     )
-    await asyncio.sleep(0.25)
+    # await asyncio.sleep(0.25)
 
     eventbus_client.close()
 
@@ -94,16 +77,24 @@ async def shutdown(
         f"Closed event bus client {id(eventbus_client)}: {eventbus_client._is_closed}"
     )
 
-    await meals_repository.close()
+    meals_repository.close()
 
 
 @inject
 async def start_event_subscriptons(
     eventbus=Provide[AppContainer.eventbus],
+    # insert_event_handler: MealInsertEventHandler = Provide[
+    #     AppContainer.meals_container.insert_event_handler
+    # ],
 ):
     try:
+        # handler = insert_event_handler
+        # print("APP handler: ", handler)
+
         await asyncio.gather(
-            handle_events(eventbus.meals_subscription()),
+            handle_events(
+                eventbus.meals_subscription(),
+            ),
             # handle_events(health_subscription, meals_event_handler),
         )
 
@@ -113,16 +104,31 @@ async def start_event_subscriptons(
         )
 
     finally:
-        await shutdown()
+        shutdown()
+
+
+@dramatiq.actor
+@inject
+def process(
+    event_data: str,
+    insert_event_handler: MealInsertEventHandler = Provide[
+        AppContainer.meals_container.insert_event_handler
+    ],
+):
+    print(
+        "insert_event_handler: ", type(insert_event_handler)
+    )
+
+    # insert_event_handler.process(event_data)
 
 
 def main():
-    logger.info(
-        f"\nStarting setup with config:\n{FORMATTED_CONFIG}\n"
-    )
-    logger.info(
-        f"Stopped asyncio event {id(STOP_EVENT)}: {STOP_EVENT.is_set()}"
-    )
+    # logger.info(
+    #     f"\nStarting setup with config:\n{FORMATTED_CONFIG}\n"
+    # )
+    # logger.info(
+    #     f"Stopped asyncio event {id(STOP_EVENT)}: {STOP_EVENT.is_set()}"
+    # )
 
     app = AppContainer(config=CONFIG)
     app.init_resources()
@@ -135,17 +141,19 @@ def main():
     signal(SIGINT, lambda x: STOP_EVENT.set())
     signal(SIGTERM, lambda x: STOP_EVENT.set())
 
-    broker = app.broker()
+    # broker = app.broker()
 
-    dramatiq.set_broker(broker)
+    # dramatiq.set_broker(broker)
 
-    logging.info(f"Broker set up: {dramatiq.get_broker()}")
+    # logging.info(f"Broker set up: {dramatiq.get_broker()}")
 
-    try:
-        asyncio.run(start_event_subscriptons())
+    process.send("hi")
 
-    except KeyboardInterrupt:
-        logging.error("Application interrupted by keyboard.")
+    # try:
+    #     asyncio.run(start_event_subscriptons())
+
+    # except KeyboardInterrupt:
+    #     logging.error("Application interrupted by keyboard.")
 
 
 if __name__ == "__main__":

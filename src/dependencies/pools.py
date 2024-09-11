@@ -1,10 +1,16 @@
 import logging
-from asyncpg import Pool, create_pool
+
+from asyncpg import Pool
+from psycopg2.pool import ThreadedConnectionPool
 
 
-async def init_async_timescale_db_pool(config: dict, database: str) -> Pool:
+def init_timescale_db_pool(
+    config: dict, database: str
+) -> Pool:
     try:
-        pool = await create_pool(
+        pool = ThreadedConnectionPool(
+            minconn=1,
+            maxconn=10,
             user=config["user"],
             password=config["password"],
             host=config["host"],
@@ -16,5 +22,7 @@ async def init_async_timescale_db_pool(config: dict, database: str) -> Pool:
         return pool
 
     except Exception as e:
-        logging.error(f"Error initializing connection pool: {e}")
+        logging.error(
+            f"Error initializing connection pool: {e}"
+        )
         raise

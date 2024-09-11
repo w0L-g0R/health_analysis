@@ -1,24 +1,25 @@
-from dependency_injector.wiring import Provide, inject
-from dramatiq import Message, actor
+from dramatiq import actor
 
 from api.meals.insert.handler import MealInsertEventHandler
-from dependencies.app import AppContainer
 
 
 @actor
-@inject
-async def process_insert_meal_event(
-    event_data: Message,
-    insert_event_handler: MealInsertEventHandler = Provide[
-        AppContainer.meals_container.insert_event_handler
-    ],
+def process_insert_meal_event(
+    insert_event_handler: MealInsertEventHandler,
 ):
-    # print("handler event", insert_event_handler)
-    # insert_event_handler()
-    # .process(event_data)
-    # handler = insert_event_handler()
-    # handler.
-    # print("handler: ", handler())
-    # handler.process(event_data)
-    # handler.pri()
-    await insert_event_handler.process(event_data)
+    # h = insert_event_handler()
+    # print("h: ", h)
+
+    # Check if the insert_event_handler is an instance of MealInsertEventHandler
+    if isinstance(
+        insert_event_handler, MealInsertEventHandler
+    ):
+        print("Handler successfully injected!")
+    else:
+        print(
+            f"Handler injection failed: {insert_event_handler}"
+        )
+
+    print("insert_event_handler: ", insert_event_handler)
+
+    # insert_event_handler.process(event_data)

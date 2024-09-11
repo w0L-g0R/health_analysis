@@ -7,13 +7,28 @@ from dependency_injector.providers import (
     Configuration,
     Container,
     Resource,
+    Singleton,
 )
 from dramatiq.brokers.rabbitmq import RabbitmqBroker
-from dramatiq.middleware import AsyncIO
 from esdbclient import EventStoreDBClient
 
+# from api.health.container import HealthContainer
 from api.meals.container import MealsContainer
 from dependencies.eventbus import EventBusContainer
+
+# from api.health.handler import HealthHandler
+
+
+class HealthHandler:
+    def __init__(self):
+        self.name = "Hein"
+
+    def print_meal(self, event_data):
+        return event_data
+
+
+class HealthContainer(DeclarativeContainer):
+    health_handler = Singleton(HealthHandler)
 
 
 class AppContainer(DeclarativeContainer):
@@ -27,30 +42,8 @@ class AppContainer(DeclarativeContainer):
     )
 
     broker = Resource(
-        RabbitmqBroker,
-        # url=config.dsn.rabbitmq.url,
-        host=config.dsn.rabbitmq.host,
-        password=config.dsn.rabbitmq.password,
-        user=config.dsn.rabbitmq.user,
-        port=config.dsn.rabbitmq.port,
-        middlewares=[
-            AsyncIO(),
-            # TimeLimit(),
-            # Retries(),
-            # Shutdown(),
-        ],
+        RabbitmqBroker, url=config.dsn.rabbitmq.url
     )
-
-    # actor = Factory(
-    #     Actor,
-    #     fn=lambda x: x,
-    #     actor_name="",
-    #     queue_name="",
-    #     broker=broker,
-    #     priority=10,
-    #     options={},
-    # )
-
     eventbus = Resource(
         EventBusContainer,
         config=config,
@@ -59,7 +52,7 @@ class AppContainer(DeclarativeContainer):
 
     meals_container = Container(
         MealsContainer,
-        # broker=broker,
-        # actor=actor,
         config=config,
     )
+
+    health_container = Container(HealthContainer)

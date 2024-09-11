@@ -10,6 +10,9 @@
     [dsn.eventstoredb]
     uri="esdb://localhost:2113?tls=false"
 
+    [dsn.redis]
+    uri="redis://localhost:6379/0"
+
     [dsn.rabbitmq]
     url="amqp://guest:guest@127.0.0.1:5672"
     user="guest"
