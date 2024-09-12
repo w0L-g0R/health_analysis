@@ -3,7 +3,6 @@ import logging
 from pprint import pformat
 from signal import SIGINT, SIGTERM, signal
 
-import dramatiq
 from dependency_injector.wiring import Provide, inject
 from esdbclient import CatchupSubscription
 
@@ -107,7 +106,6 @@ async def start_event_subscriptons(
         shutdown()
 
 
-@dramatiq.actor
 @inject
 def process(
     event_data: str,
@@ -156,5 +154,23 @@ def main():
     #     logging.error("Application interrupted by keyboard.")
 
 
+async def main() -> None:
+    await broker.startup()
+
+    task = broker.find_task(task_name="get_client_task")
+
+    print("task: ", task)
+    task
+    get_client_task = await task.kiq()
+
+    print("get_client_task: ", get_client_task)
+
+    get_res = await get_client_task.wait_result()
+
+    print(f"Got client value: {get_res.is_err}")
+
+    await broker.shutdown()
+
+
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

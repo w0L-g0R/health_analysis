@@ -1,5 +1,6 @@
 from logging.config import dictConfig
 
+from dependencies.eventbus import EventBusContainer
 from dependency_injector.containers import (
     DeclarativeContainer,
 )
@@ -14,7 +15,6 @@ from esdbclient import EventStoreDBClient
 
 # from api.health.container import HealthContainer
 from api.meals.container import MealsContainer
-from dependencies.eventbus import EventBusContainer
 
 # from api.health.handler import HealthHandler
 
