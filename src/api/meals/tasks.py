@@ -1,4 +1,5 @@
 # import asyncio
+import asyncio
 from typing import Annotated, Optional
 
 from dependencies.database import DB
@@ -11,11 +12,14 @@ class MealsTasks:
     async def insert_meal(
         event: str,
         database: Annotated[DB, TaskiqDepends()],
+        context: Annotated[Context, TaskiqDepends()],
     ) -> str:
         # repo = context.state.meals_repository
 
         # context.state.database
-        print("database: ", database)
+        print("context: ", context.state)
+        print("database.id: ", database.id)
+        await asyncio.sleep(5)
 
         # context.broker
         # _ = self.event_class.model_validate(event_data)

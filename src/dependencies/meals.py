@@ -2,7 +2,7 @@ from dependencies.database import TimeScaleDatabase
 from dependency_injector.containers import (
     DeclarativeContainer,
 )
-from dependency_injector.providers import Configuration, Object, Singleton, Dependency
+from dependency_injector.providers import Dict, Object, Singleton, Dependency
 from taskiq_aio_pika import AioPikaBroker
 
 # from api.meals.insert.event import MealInsertEvent
@@ -15,7 +15,9 @@ from taskiq_aio_pika import AioPikaBroker
 class MealsContainer(DeclarativeContainer):
     config = Dependency()
     database = Dependency(TimeScaleDatabase)
-    broker = Dependency(AioPikaBroker)
+    # broker = Dependency(AioPikaBroker)
+
+    # broker_dependencies = Dict({{"database": database}})
 
     #     repository = Singleton(MealsRepository, pool=pool)
 

@@ -1,11 +1,12 @@
 import logging
 from typing import Optional
+from uuid import uuid4
 
 from asyncpg import create_pool
 from asyncpg.pool import Pool
 
 
-async def init_async_timescale_db_pool(config: dict) -> Optional[Pool]:
+async def init_async_timescale_db_pool(config: dict) -> Pool:
     try:
         pool = await create_pool(
             user=config["user"],
@@ -16,7 +17,8 @@ async def init_async_timescale_db_pool(config: dict) -> Optional[Pool]:
         )
 
         logging.info(f"Timescale DB pool created: {id(pool)}")
-        return pool
+        if pool:
+            return pool
 
     except Exception as e:
         logging.error(f"Error initializing connection pool: {e}")
@@ -24,8 +26,11 @@ async def init_async_timescale_db_pool(config: dict) -> Optional[Pool]:
 
 
 class DB:
-    def exec(self):
-        print("Executing in DB")
+    id = uuid4()
+
+    @classmethod
+    def exec(cls):
+        print("Executing in DB:", cls.id)
 
     pass
 

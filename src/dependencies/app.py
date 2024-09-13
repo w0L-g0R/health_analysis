@@ -31,11 +31,10 @@ class AppContainer(DeclarativeContainer):
 
     database = Resource(TimeScaleDatabase, pool=pool)
 
-    meals_broker = Resource(AioPikaBroker, url=config.dsn.rabbitmq.url)
+    # meals_broker = Resource(AioPikaBroker, url=config.dsn.rabbitmq.url)
 
     meals_container = Container(
         MealsContainer,
-        broker=meals_broker,
         database=database,
         config=config,
     )
