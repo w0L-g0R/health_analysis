@@ -11,3 +11,8 @@ class MealInsertEvent(BaseModel):
 
     class Config:
         frozen = True
+
+
+class DeleteMealEvent(BaseModel):
+    meal_id: UUID = Field(default_factory=uuid4, frozen=True)
+    user_id: UUID = Field(default_factory=uuid4, frozen=True)
