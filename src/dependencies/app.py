@@ -1,17 +1,14 @@
 from logging.config import dictConfig
 
+from dependencies.database import TimeScaleDatabase, init_async_timescale_db_pool
 from dependencies.eventbus import EventBusContainer
 from dependencies.meals import MealsContainer
 from dependency_injector.containers import (
     DeclarativeContainer,
 )
-from dependency_injector.providers import (
-    Configuration,
-    Container,
-    Resource,
-)
-from dramatiq.brokers.rabbitmq import RabbitmqBroker
+from dependency_injector.providers import Configuration, Container, Resource, Singleton
 from esdbclient import EventStoreDBClient
+from taskiq_aio_pika import AioPikaBroker
 
 
 class AppContainer(DeclarativeContainer):
@@ -24,15 +21,21 @@ class AppContainer(DeclarativeContainer):
     #     uri=config.dsn.eventstoredb.uri,
     # )
 
-    meals_broker = Resource(RabbitmqBroker, url=config.dsn.rabbitmq.url)
-
     # eventbus = Resource(
     #     EventBusContainer,
     #     config=config,
     #     client=eventbus_client,
     # )
 
-    # meals_container = Container(
-    #     MealsContainer,
-    #     config=config,
-    # )
+    pool = Resource(init_async_timescale_db_pool, config=config.dsn.timescaledb)
+
+    database = Resource(TimeScaleDatabase, pool=pool)
+
+    meals_broker = Resource(AioPikaBroker, url=config.dsn.rabbitmq.url)
+
+    meals_container = Container(
+        MealsContainer,
+        broker=meals_broker,
+        database=database,
+        config=config,
+    )

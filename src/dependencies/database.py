@@ -5,14 +5,14 @@ from asyncpg import create_pool
 from asyncpg.pool import Pool
 
 
-async def init_async_timescale_db_pool(config: dict, database: str) -> Optional[Pool]:
+async def init_async_timescale_db_pool(config: dict) -> Optional[Pool]:
     try:
         pool = await create_pool(
             user=config["user"],
             password=config["password"],
-            database=database,
+            database=config["database"],
             host=config["host"],
-            port=config.get("port", 5433),
+            port=config["port"],
         )
 
         logging.info(f"Timescale DB pool created: {id(pool)}")
@@ -23,7 +23,14 @@ async def init_async_timescale_db_pool(config: dict, database: str) -> Optional[
         raise
 
 
-class Database:
+class DB:
+    def exec(self):
+        print("Executing in DB")
+
+    pass
+
+
+class TimeScaleDatabase:
     def __init__(self, pool):
         self.pool = pool
 

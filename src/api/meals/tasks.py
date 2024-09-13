@@ -1,6 +1,7 @@
 # import asyncio
 from typing import Annotated, Optional
 
+from dependencies.database import DB
 from domain.meals.events import MealInsertEvent
 from taskiq import Context, TaskiqDepends
 
@@ -8,12 +9,15 @@ from taskiq import Context, TaskiqDepends
 class MealsTasks:
     @staticmethod
     async def insert_meal(
-        event: MealInsertEvent,
-        context: Annotated[Context, TaskiqDepends()],
-    ):
-        repo = context.state.meals_repository
+        event: str,
+        database: Annotated[DB, TaskiqDepends()],
+    ) -> str:
+        # repo = context.state.meals_repository
 
-        context.broker
+        # context.state.database
+        print("database: ", database)
+
+        # context.broker
         # _ = self.event_class.model_validate(event_data)
 
         # statement, args = self.query.insert_meal(
@@ -26,8 +30,8 @@ class MealsTasks:
 
         # self.repository.execute(statement, args)
 
-        print("meals repo", repo)
-        return repo
+        print("meals event", event)
+        return event
 
     # async def update_meal_task(
     #     context: Annotated[Context, TaskiqDepends()],
@@ -44,10 +48,3 @@ class MealsTasks:
 
     #     print("context.client", c)
     #     return c
-
-    def __call__():
-        return [
-            MealsTasks.insert_meal,
-            # MealsTasks.delete_meal_task,
-            # MealsTasks.update_meal_task,
-        ]

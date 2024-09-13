@@ -1,22 +1,10 @@
-import asyncio
-import logging
-from pprint import pformat
-from signal import SIGINT, SIGTERM, signal
+# from config import CONFIG
 
-from dependency_injector.wiring import Provide, inject
-from esdbclient import CatchupSubscription
+# logging.config.dictConfig(CONFIG["logging"])
+# logger = logging.getLogger(__name__)
 
-from api.meals.insert.handler import MealInsertEventHandler
-from dependencies.database import MealsRepository
-from config import CONFIG
-from dependencies.app import AppContainer
-from dependencies.eventbus import EventBusContainer
-
-logging.config.dictConfig(CONFIG["logging"])
-logger = logging.getLogger(__name__)
-
-STOP_EVENT = asyncio.Event()
-FORMATTED_CONFIG = pformat(CONFIG, indent=4)
+# STOP_EVENT = asyncio.Event()
+# FORMATTED_CONFIG = pformat(CONFIG, indent=4)
 
 
 # @inject
@@ -144,22 +132,40 @@ FORMATTED_CONFIG = pformat(CONFIG, indent=4)
 #     #     logging.error("Application interrupted by keyboard.")
 
 
-async def main() -> None:
-    await broker.startup()
+import asyncio
 
-    task = broker.find_task(task_name="get_client_task")
+from bootstrap import meals_broker
 
+# meals_broker = AioPikaBroker(url="amqp://guest:guest@127.0.0.1:5672")
+# meals_broker.register_task(MealsTasks.insert_meal, "MealInsert")
+
+
+async def main():
+    print("Main running")
+    # await asyncio.sleep(0)
+
+    await meals_broker.startup()
+    print("meals_broker: ", meals_broker)
+
+    task = meals_broker.find_task(task_name="MealInsert")
+    print("meals_broker: ", meals_broker)
     print("task: ", task)
-    task
-    get_client_task = await task.kiq()
 
-    print("get_client_task: ", get_client_task)
+    # task = broker.find_task(task_name="get_client_task")
 
-    get_res = await get_client_task.wait_result()
+    # print("task: ", task)
+    # task
+    if task:
+        _task = await task.kiq("event")
+        res = await _task.wait_result()
+        print("res: ", res)
+    # print("get_client_task: ", get_client_task)
 
-    print(f"Got client value: {get_res.is_err}")
+    # get_res = await get_client_task.wait_result()
 
-    await broker.shutdown()
+    # print(f"Got client value: {get_res.is_err}")
+
+    # await broker.shutdown()
 
 
 if __name__ == "__main__":
