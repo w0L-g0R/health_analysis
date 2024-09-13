@@ -1,13 +1,11 @@
-from dataclasses import dataclass
-import datetime
-from uuid import uuid4
+from datetime import datetime
+from uuid import UUID, uuid4
 
 
-@dataclass
-class MealInsertQuery:
+class MealInsertQueries:
     @staticmethod
     def insert_meal(
-        time: datetime, meal_id: uuid4, user_id: uuid4, meal_name: str, calories: float
+        time: datetime, meal_id: UUID, user_id: UUID, meal_name: str, calories: float
     ):
         statement = """
             INSERT INTO public.meals (time, meal_id, user_id, meal_name, calories)

@@ -10,5 +10,9 @@
             }
         ],
         "scanLimit": 200
+    },
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/.git": false
     }
 }

@@ -1,18 +1,53 @@
-# import dramatiq
-# from psycopg2.sql import SQL
+# import asyncio
+from typing import Annotated, Optional
 
-# from api.clients.timescale import TimescaleDbClient
-# from api.meals.mutations import InsertMealArgs
-# from config import MEALS_QUEUE, TIMESCALE_DB
-
-# client = TimescaleDbClient(connection=TIMESCALE_DB)
+from domain.meals.events import MealInsertEvent
+from taskiq import Context, TaskiqDepends
 
 
-# class MealTasks:
-#     @dramatiq.actor(queue_name=MEALS_QUEUE)
-#     @staticmethod
-#     def execute_insert_meal(
-#         statement: SQL,
-#         args: InsertMealArgs,
-#     ) -> None:
-#         client.execute(statement, args)
+class MealsTasks:
+    @staticmethod
+    async def insert_meal(
+        event: MealInsertEvent,
+        context: Annotated[Context, TaskiqDepends()],
+    ):
+        repo = context.state.meals_repository
+
+        context.broker
+        # _ = self.event_class.model_validate(event_data)
+
+        # statement, args = self.query.insert_meal(
+        #     time=datetime.now(timezone.utc),
+        #     meal_id=_.meal_id,
+        #     user_id=_.user_id,
+        #     meal_name=_.meal_name,
+        #     calories=_.calories,
+        # )
+
+        # self.repository.execute(statement, args)
+
+        print("meals repo", repo)
+        return repo
+
+    # async def update_meal_task(
+    #     context: Annotated[Context, TaskiqDepends()],
+    # ) -> Optional[str]:
+    #     c = context.state.client
+
+    #     print("context.client", c)
+    #     return c
+
+    # async def delete_meal_task(
+    #     context: Annotated[Context, TaskiqDepends()],
+    # ) -> Optional[str]:
+    #     c = context.state.client
+
+    #     print("context.client", c)
+    #     return c
+
+    def __call__():
+        return [
+            MealsTasks.insert_meal,
+            # MealsTasks.delete_meal_task,
+            # MealsTasks.update_meal_task,
+        ]
