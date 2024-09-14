@@ -2,15 +2,19 @@ from dependency_injector.containers import (
     DeclarativeContainer,
 )
 from dependency_injector.providers import (
-    Singleton,
     Configuration,
     Dependency,
+    Singleton,
 )
 from esdbclient import CatchupSubscription, EventStoreDBClient
 
 
-def get_subscription(client, stream_name: str, from_end: bool) -> CatchupSubscription:
-    return client.subscribe_to_stream(stream_name=stream_name, from_end=from_end)
+def get_subscription(
+    client, stream_name: str, from_end: bool
+) -> CatchupSubscription:
+    return client.subscribe_to_stream(
+        stream_name=stream_name, from_end=from_end
+    )
 
 
 class EventBusContainer(DeclarativeContainer):

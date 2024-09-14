@@ -16,5 +16,4 @@
 .mypy_cache
 
 .venv
-/poetry.toml
 /__pycache__

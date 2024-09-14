@@ -1,16 +1,9 @@
 from pathlib import Path
-from typing import Annotated
 from uuid import uuid4
-from dependencies.app import AppContainer
-from redis import ConnectionPool
-from taskiq_aio_pika import AioPikaBroker
+
 from toml import load
 
-from api.meals.tasks import MealsTasks
-
-
-from taskiq import TaskiqEvents, TaskiqState
-
+from dependencies.app import AppContainer
 
 CONFIG_FILE_PATH = Path(__file__).parent / "config.toml"
 

@@ -1,35 +1,34 @@
-from dependencies.database import TimeScaleDatabase
+import logging
+import asyncpg
 from dependency_injector.containers import (
     DeclarativeContainer,
 )
-from dependency_injector.providers import Dict, Object, Singleton, Dependency
+from dependency_injector.providers import (
+    Configuration,
+    Resource,
+    Singleton,
+)
 from taskiq_aio_pika import AioPikaBroker
 
-# from api.meals.insert.event import MealInsertEvent
-# from api.meals.insert.handler import MealInsertEventHandler
-# from api.meals.queries import MealInsertCommand
-# from dependencies.database import MealsRepository
-# from dependencies.pools import init_timescale_db_pool
+from dependencies.database import (
+    TimeScaleDatabase,
+    init_async_timescale_db_connection,
+)
 
 
 class MealsContainer(DeclarativeContainer):
-    config = Dependency()
-    database = Dependency(TimeScaleDatabase)
-    # broker = Dependency(AioPikaBroker)
+    config = Configuration()
 
-    # broker_dependencies = Dict({{"database": database}})
+    connection = Resource(
+        init_async_timescale_db_connection,
+        config=config.dsn.timescaledb,
+    )
 
-    #     repository = Singleton(MealsRepository, pool=pool)
+    database = Resource(
+        TimeScaleDatabase,
+        connection=connection,
+    )
 
-    # database = Singleton(DB)
-
-
-#     config = Configuration()
-
-
-# insert_event_handler = Singleton(
-#     MealInsertEventHandler,
-#     repository=repository,
-#     event_class=Object(MealInsertEvent),
-#     query=Object(MealInsertCommand),
-# )
+    broker = Resource(
+        AioPikaBroker, url=config.dsn.rabbitmq.url
+    )

@@ -1,42 +1,88 @@
-from pathlib import Path
+import asyncio
 from typing import Annotated
-from uuid import uuid4
-from redis import ConnectionPool
+
+from taskiq import (
+    Context,
+    TaskiqDepends,
+    TaskiqEvents,
+    TaskiqState,
+)
 from taskiq_aio_pika import AioPikaBroker
-from toml import load
 
 from api.meals.tasks import MealsTasks
+from config import CONFIG_DICT
+from dependencies.meals import MealsContainer
 
 
-from taskiq import TaskiqEvents, TaskiqState
+async def init_broker() -> AioPikaBroker:
+    meals_container = MealsContainer()
+    meals_container.config.from_dict(CONFIG_DICT)
+    meals_database = await meals_container.database()
+
+    meals_broker = meals_container.broker()
+    # meals_database = meals_container.database()
+
+    state = TaskiqState()
+    state["database"] = meals_database
+    meals_broker.state = state
+    # meals_broker.add_dependency_context(
+    #     {"state.db": meals_database}
+    # )
+
+    meals_broker.register_task(
+        MealsTasks.insert_meal,
+        MealsTasks.insert_meal.__name__,
+    )
+
+    # meals_broker.add_event_handler(
+    #     event=TaskiqEvents.WORKER_STARTUP,
+    #     handler=meals_broker.state.database.close,
+    # )
+
+    return meals_broker
 
 
-CONFIG_FILE_PATH = Path(__file__).parent / "config.toml"
-
-with open(CONFIG_FILE_PATH, "r") as file:
-    CONFIG = load(file)
+def close_db(context: Annotated[Context, TaskiqDepends()]):
+    context.database.close()
 
 
-# meals_broker = meals_container.broker()
-
+meals_broker = asyncio.run(init_broker())
 
 # state = TaskiqState()
 # state["db"] = uuid4()
 # broker.state = state
 # print("broker.state: ", broker.state)
-# # broker.register_task(MealsTasks.insert_meal, "MealInsert")
 # broker.register_task(MealsTasks.insert_meal, "MealInsert")
 # # from taskiq import Context, TaskiqDepends
 
-broker = AioPikaBroker(url=CONFIG["dsn"]["rabbitmq"]["url"])
-from bootstrap import db
+# meals_broker = AioPikaBroker(
+#     url="amqp://guest:guest@127.0.0.1:5672"
+# )
+
+# meals_container = MealsContainer()
+
+# meals_container.config.from_dict(CONFIG_DICT)
+# asyncio.wait(meals_container.init_resources())
+# meals_broker = meals_container.broker()
 
 
-@broker.on_event(TaskiqEvents.WORKER_STARTUP)
+# meals_container = MealsContainer()
+# meals_container.config.from_dict(CONFIG_DICT)
+# meals_container.database()
+# meals_broker = meals_container.broker()
+
+
+# Run the async function
+
+# print("meals_container.config", meals_container.config())
+# config = meals_container.config()
+# # from bootstrap import db
+
+
+# meals_broker = AioPikaBroker(url=config["dsn"]["rabbitmq"])
+@meals_broker.on_event(TaskiqEvents.WORKER_STARTUP)
 async def startup(state: TaskiqState) -> None:
-    # broker.add_dependency_context({"database": db})
-    print("db: ", db)
-    state.db = db
+    await state.database.close()
 
 
 # @broker.on_event(TaskiqEvents.WORKER_STARTUP)
@@ -72,4 +118,9 @@ async def startup(state: TaskiqState) -> None:
 # meals_broker.add_dependency_context({"database": meals_database})
 
 
+# print("meals_broker: ", broker)
+# print("meals_broker: ", broker)
+# print("meals_broker: ", broker)
+# print("meals_broker: ", broker)
+# print("meals_broker: ", broker)
 # print("meals_broker: ", broker)

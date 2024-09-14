@@ -142,85 +142,40 @@
 # # meals_broker.register_task(MealsTasks.insert_meal, "MealInsert")
 # db = DB()
 
-
-# async def main():
-#     print("Main running")
-#     # await asyncio.sleep(0)
-
-#     await broker.startup()
-
-#     broker.add_dependency_context({"database": db})
-
-#     task = broker.find_task(task_name="MealInsert")
-#     # print("meals_broker: ", broker)
-#     print("task: ", task)
-
-#     # task = broker.find_task(task_name="get_client_task")
-
-#     # print("task: ", task)
-#     # task
-#     if task:
-#         _task = await task.kiq("event")
-#         _task2 = await task.kiq("event2")
-#         res = await _task.wait_result()
-#         res2 = await _task2.wait_result()
-#         print("res: ", res)
-#         print("res2: ", res2)
-#     # print("get_client_task: ", get_client_task)
-
-#     # get_res = await get_client_task.wait_result()
-
-#     # print(f"Got client value: {get_res.is_err}")
-
-#     # await broker.shutdown()
-
-
-# if __name__ == "__main__":
-#     asyncio.run(main())
-
 import asyncio
-import logging
-from pathlib import Path
-from uuid import uuid4
-from taskiq import TaskiqEvents, TaskiqState
-from taskiq_aio_pika import AioPikaBroker
 
-# Your broker setup
-broker = AioPikaBroker(url="amqp://guest:guest@127.0.0.1:5672")
-
-shared_db = None  # To hold the shared DB pool
+from api.meals.tasks import MealsTasks
+from brokers import meals_broker
 
 
-def get_db():
-    global shared_db
-    if shared_db is None:
-        # Initialize the shared resource (e.g., pool or UUID) only once
-        shared_db = uuid4()  # or `await asyncpg.create_pool(...)`
-    return shared_db
+async def main():
+    print("Main running")
 
+    await meals_broker.startup()
 
-# Inject the same shared db into each worker's context
-@broker.on_event(TaskiqEvents.WORKER_STARTUP)
-async def startup(state: TaskiqState) -> None:
-    db = get_db()  # The same shared resource
-    broker.add_dependency_context({"database": db})
-    print("Shared db: ", db)
-    state.db = db
+    task = meals_broker.find_task(
+        task_name=MealsTasks.insert_meal.__name__
+    )
+    print("task: ", task)
+
+    if task:
+        _task = await task.kiq("event")
+        _task2 = await task.kiq("event2")
+        res = await _task.wait_result()
+        res2 = await _task2.wait_result()
+        print("res: ", res)
+        print("res2: ", res2)
+
+    # print("get_client_task: ", get_client_task)
+
+    # get_res = await get_client_task.wait_result()
+
+    # print(f"Got client value: {get_res.is_err}")
+
+    # await broker.shutdown()
 
 
 if __name__ == "__main__":
-    import asyncio
-    from taskiq.cli.worker.run import run_worker
-    from taskiq.cli.worker.args import WorkerArgs
-
-    # Make sure the shared resource is initialized before starting workers
-    shared_db = get_db()
-
-    args = WorkerArgs(
-        broker="src.main:broker",
-        modules=["src.main"],
-        workers=2,  # Number of worker processes
-    )
-
-    # Start the worker (you can pass arguments like number of workers, etc.)
-    run_worker(args)
+    asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())
