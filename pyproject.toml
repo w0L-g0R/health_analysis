@@ -15,7 +15,7 @@ packages = [
 ]
 
 [tool.poetry.scripts]
-main = "src.__main__:main"
+main = "src.main:main"
 events = "tests.events:run"
 
 [tool.poetry.dependencies]
@@ -35,6 +35,7 @@ asyncpg = "^0.29.0"
 taskiq-dependencies = "^1.5.3"
 taskiq-aio-pika = "^0.4.1"
 isort = "^5.13.2"
+taskiq = {extras = ["reload"], version = "^0.11.7"}
 
 [tool.isort]
 profile = "black"
@@ -42,7 +43,7 @@ force_sort_within_sections = true
 
 [tool.ruff]
 # Disable unused-import (F401)
-ignore = ["F401"]
+# ignore = ["F401"]
 
 [build-system]
 requires = ["poetry-core"]

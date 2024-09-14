@@ -143,9 +143,11 @@
 # db = DB()
 
 import asyncio
-
-from api.meals.tasks import MealsTasks
-from brokers import meals_broker
+from random import random
+from uuid import uuid4
+from api.meals.broker import broker as meals_broker
+from domain.meals.events import InsertMealEvent
+from domain.meals.tasks import MealTasks
 
 
 async def main():
@@ -153,18 +155,28 @@ async def main():
 
     await meals_broker.startup()
 
+    tasks = meals_broker.get_all_tasks()
+    print("MealTasks.INSERT.value: ", MealTasks.INSERT.value)
+    print("tasks: ", tasks)
+
     task = meals_broker.find_task(
-        task_name=MealsTasks.insert_meal.__name__
+        task_name=MealTasks.INSERT.value
     )
     print("task: ", task)
 
+    event_insert_meal = InsertMealEvent(
+        user_id=uuid4(),
+        meal_name="test_meal",
+        calories=float("{:.2f}".format(abs(random()))),
+    )
+
     if task:
-        _task = await task.kiq("event")
-        _task2 = await task.kiq("event2")
+        _task = await task.kiq(event_insert_meal)
+        # _task2 = await task.kiq("event2")
         res = await _task.wait_result()
-        res2 = await _task2.wait_result()
+        # res2 = await _task2.wait_result()
         print("res: ", res)
-        print("res2: ", res2)
+        # print("res2: ", res2)
 
     # print("get_client_task: ", get_client_task)
 
@@ -175,7 +187,5 @@ async def main():
     # await broker.shutdown()
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
 if __name__ == "__main__":
     asyncio.run(main())

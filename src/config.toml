@@ -6,8 +6,10 @@
     password="password"
     host="localhost"
     port="5433"
-    database="meals"
+    database="what_the_health"
 
+            [dsn.timescaledb.tables]
+            meals="meals"
     [dsn.eventstoredb]
     uri="esdb://localhost:2113?tls=false"
 
@@ -20,10 +22,7 @@
     password="guest"
     host="127.0.0.1"
     port="5672"
-
-[databases]
-    meals="meals"
-
+    
 [queues]
     [queues.meals]
         insert="MealInsert"

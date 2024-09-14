@@ -3,8 +3,8 @@ from dependency_injector.containers import (
 )
 from dependency_injector.providers import (
     Configuration,
-    Dependency,
     Singleton,
+    Resource,
 )
 from esdbclient import CatchupSubscription, EventStoreDBClient
 
@@ -20,7 +20,10 @@ def get_subscription(
 class EventBusContainer(DeclarativeContainer):
     config = Configuration()
 
-    client = Dependency(instance_of=EventStoreDBClient)
+    client = Resource(
+        EventStoreDBClient,
+        uri=config.dsn.eventstoredb.uri,
+    )
 
     meals_subscription = Singleton(
         get_subscription,

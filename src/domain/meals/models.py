@@ -5,7 +5,9 @@ from pydantic import BaseModel, Field
 
 
 class MealInsertModel(BaseModel):
-    time: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    time: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
     meal_id: UUID
     user_id: UUID
     meal_name: str = Field(min_length=3)
