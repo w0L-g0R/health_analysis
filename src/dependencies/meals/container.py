@@ -1,7 +1,3 @@
-from dependencies.meals.factories import (
-    InsertMealQueryFactory,
-    MealQueryFactory,
-)
 from dependency_injector.containers import (
     DeclarativeContainer,
 )
@@ -13,16 +9,12 @@ from dependency_injector.providers import (
     Factory,
 )
 
-from domains.meals.events import (
-    DeleteMealEvent,
-    InsertMealEvent,
-    MealEvents,
-)
+
 from taskiq_aio_pika import AioPikaBroker
 
-from adapters.databases import (
-    TimeScaleDatabase,
-)
+from src.adapters.databases import TimeScaleDatabase
+from src.dependencies.meals.factories import InsertMealQueryFactory, MealQueryFactory
+from src.domains.meals.events import DeleteMealEvent, InsertMealEvent, MealEvents
 
 
 class MealsContainer(DeclarativeContainer):
@@ -33,9 +25,7 @@ class MealsContainer(DeclarativeContainer):
         config=config.dsn.timescaledb,
     )
 
-    broker = Resource(
-        AioPikaBroker, url=config.dsn.rabbitmq.url
-    )
+    broker = Resource(AioPikaBroker, url=config.dsn.rabbitmq.url)
 
     events = Dict(
         {

@@ -1,15 +1,14 @@
 # import asyncio
-import asyncio
 from enum import Enum
 from pathlib import Path
 from typing import Annotated
 
-from config.config import BASE_DIR_PATH
+from src.config import BASE_DIR_PATH
 
-from dependencies.meals.factories import MealQueryFactory
-from domains.meals.events import InsertMealEvent, MealEvents
 from taskiq import Context, TaskiqDepends
-from pprint import pp
+
+from src.dependencies.meals.factories import MealQueryFactory
+from src.domains.meals.events import InsertMealEvent, MealEvents
 
 
 MODULE_PATH = (
@@ -28,9 +27,7 @@ async def insert_meal(
 ):
     event_type = context.state.events().get(MealEvents.INSERT)
     database = context.state.database
-    query_factory = context.state.query_factories().get(
-        MealQueryFactory.INSERT
-    )
+    query_factory = context.state.query_factories().get(MealQueryFactory.INSERT)
     validated_event = event_type.model_validate(event)
     query = query_factory.create(from_event=validated_event)
 

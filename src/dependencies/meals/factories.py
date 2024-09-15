@@ -1,17 +1,15 @@
 from datetime import datetime, timezone
 from enum import Enum
 
-from domains.meals.events import InsertMealEvent
-from domains.meals.queries import InsertMealQuery
+from src.domains.meals.events import InsertMealEvent
+from src.domains.meals.queries import InsertMealQuery
 
 
 class InsertMealQueryFactory:
     def __init__(self, table_name: str):
         self.table_name = table_name
 
-    def create(
-        self, from_event: InsertMealEvent
-    ) -> InsertMealQuery:
+    def create(self, from_event: InsertMealEvent) -> InsertMealQuery:
         return InsertMealQuery(
             time=datetime.now(tz=timezone.utc),
             meal_id=from_event.meal_id,

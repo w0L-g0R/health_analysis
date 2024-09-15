@@ -1,7 +1,6 @@
 import logging
-
 from asyncpg import connect
-from shared.async_mixin import AsyncMixin
+from src.shared.async_mixin import AsyncMixin
 
 
 class TimeScaleDatabase(AsyncMixin):
@@ -15,37 +14,27 @@ class TimeScaleDatabase(AsyncMixin):
                 port=config["port"],
             )
 
-            logging.info(
-                f"Timescale DB connection created: {id(self.connection)}"
-            )
+            logging.info(f"Timescale DB connection created: {id(self.connection)}")
 
         except Exception as e:
-            logging.error(
-                f"Error initializing connection: {e}"
-            )
+            logging.error(f"Error initializing connection: {e}")
             raise
 
     async def execute(self, statement, args):
         try:
             if self.connection:
-                await self.connection.execute(
-                    statement, *args
-                )
+                await self.connection.execute(statement, *args)
+
         except Exception:
-            logging.error(
-                f"Error executing: {statement} with args {args}"
-            )
+            logging.error(f"Error executing: {statement} with args {args}")
             raise
 
     async def close(self):
         if self.connection:
             try:
                 await self.connection.close()
-                logging.info(
-                    f"Closed connection {self.connection} in the pool."
-                )
+                logging.info(f"Closed connection {self.connection} in the pool.")
+
             except Exception as e:
-                logging.error(
-                    f"Error closing connection {self.connection}: {e}"
-                )
+                logging.error(f"Error closing connection {self.connection}: {e}")
                 raise

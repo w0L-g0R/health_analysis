@@ -1,11 +1,11 @@
-from brokers.utils import (
+from taskiq import TaskiqEvents
+from src.brokers.utils import (
     shutdown_worker_event_handler,
     startup_worker_event_handler,
 )
-from dependencies.meals.container import MealsContainer
-from taskiq import TaskiqEvents
-from tasks.meals import MealTasks, insert_meal
-from config.config import CONFIG_DICT
+from src.config import CONFIG_DICT
+from src.dependencies.meals.container import MealsContainer
+from src.tasks.meals import MealTasks, insert_meal
 
 meals_container = MealsContainer()
 meals_container.config.from_dict(CONFIG_DICT)
@@ -30,7 +30,5 @@ meals_broker.add_event_handler(
 
 meals_broker.add_event_handler(
     event=TaskiqEvents.WORKER_SHUTDOWN,
-    handler=lambda state: shutdown_worker_event_handler(
-        state=state
-    ),
+    handler=lambda state: shutdown_worker_event_handler(state=state),
 )

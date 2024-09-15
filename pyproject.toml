@@ -9,13 +9,12 @@ description = ""
 authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 packages = [
-    { include = "api", from = "src" },
-    { include = "dependencies", from = "src" },
+    { include = "src" },
     { include = "tests" },
 ]
 
 [tool.poetry.scripts]
-main = "src.main:main"
+bootstrap = "src.bootstrap:main"
 events = "tests.events:run"
 
 [tool.poetry.dependencies]
