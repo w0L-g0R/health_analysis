@@ -1,3 +1,7 @@
+from dependencies.meals.factories import (
+    InsertMealQueryFactory,
+    MealQueryFactory,
+)
 from dependency_injector.containers import (
     DeclarativeContainer,
 )
@@ -8,15 +12,15 @@ from dependency_injector.providers import (
     Dict,
     Factory,
 )
-from domain.meals.events import (
+
+from domains.meals.events import (
     DeleteMealEvent,
     InsertMealEvent,
     MealEvents,
 )
-from domain.meals.queries import MealQueries, InsertMealQuery
 from taskiq_aio_pika import AioPikaBroker
 
-from dependencies.infrastructure.database import (
+from adapters.databases import (
     TimeScaleDatabase,
 )
 
@@ -40,8 +44,11 @@ class MealsContainer(DeclarativeContainer):
         }
     )
 
-    queries = Dict(
+    query_factories = Dict(
         {
-            MealQueries.INSERT: Factory(InsertMealQuery),
+            MealQueryFactory.INSERT: Factory(
+                InsertMealQueryFactory,
+                table_name=config.dsn.timescaledb.tables.meals,
+            )
         }
     )

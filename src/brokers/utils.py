@@ -1,27 +1,42 @@
 import asyncio
+import subprocess
+import sys
 from dependency_injector.providers import Resource, Dict
 import logging
 
-from dependencies.infrastructure.database import (
+from adapters.databases import (
     TimeScaleDatabase,
 )
 from taskiq import TaskiqState
+
+
+async def startup_broker(broker):
+    await broker.startup()
+
+
+def start_workers_for(broker_name):
+    cmd = [
+        sys.executable,
+        "-m",
+        "taskiq",
+        "worker",
+        f"module:{broker_name}",
+    ]
+    return subprocess.Popen(cmd)
 
 
 async def startup_worker_event_handler(
     state: TaskiqState,
     database: Resource[TimeScaleDatabase],
     events: Dict,
-    queries: Dict,
+    query_factories: Dict,
 ):
     state.database = await database()
     state.events = events
-    state.queries = queries
+    state.query_factories = query_factories
 
 
-async def shutdown_worker_event_handler(
-    state: TaskiqState, database: Resource[TimeScaleDatabase]
-):
+async def shutdown_worker_event_handler(state: TaskiqState):
     try:
         if not asyncio.get_event_loop().is_closed():
             logging.info("Shutting down the database.")

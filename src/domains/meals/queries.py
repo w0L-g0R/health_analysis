@@ -5,10 +5,14 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 
+from datetime import timezone
+
+
 class InsertMealQuery(BaseModel):
     time: datetime
     meal_id: UUID
     user_id: UUID
+    table: str
     meal_name: str = Field(min_length=3)
     calories: float = Field(gt=0)
 
@@ -22,13 +26,10 @@ class InsertMealQuery(BaseModel):
     @property
     def args(self) -> tuple:
         return tuple(
-            self.model_dump(exclude={"statement"}).values()
+            self.model_dump(
+                exclude={"table", "statement"}
+            ).values()
         )
 
     class Config:
         frozen = True
-
-
-class MealQueries(Enum):
-    INSERT = InsertMealQuery.__name__
-    # DELETE = "delete_meal_query"

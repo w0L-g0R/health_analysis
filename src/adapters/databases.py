@@ -1,7 +1,7 @@
 import logging
 
-from interfaces.async_mixin import AsyncMixin
 from asyncpg import connect
+from shared.async_mixin import AsyncMixin
 
 
 class TimeScaleDatabase(AsyncMixin):
@@ -28,7 +28,9 @@ class TimeScaleDatabase(AsyncMixin):
     async def execute(self, statement, args):
         try:
             if self.connection:
-                await self.connection.execute(statement, args)
+                await self.connection.execute(
+                    statement, *args
+                )
         except Exception:
             logging.error(
                 f"Error executing: {statement} with args {args}"
