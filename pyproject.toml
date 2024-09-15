@@ -11,7 +11,7 @@ readme = "README.md"
 packages = [{include = "api", from="src"},{include = "tests"}]
 
 [tool.poetry.scripts]
-main = "src.main:start"
+main = "src"
 events = "tests.events:run"
 
 [tool.poetry.dependencies]
@@ -29,6 +29,7 @@ psycopg2-binary = "^2.9.9"
 toml = "^0.10.2"
 dependency-injector = "4.42.0b1"
 pyaml = "^24.7.0"
+asyncpg = "^0.29.0"
 
 [build-system]
 requires = ["poetry-core"]
