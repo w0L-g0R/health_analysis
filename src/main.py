@@ -1,168 +1,163 @@
 import asyncio
-import json
+import logging
+from pprint import pformat
+from signal import SIGINT, SIGTERM, signal
 
-from taskiq import InMemoryBroker
-from taskiq_aio_pika import AioPikaBroker
-from taskiq_redis import ListQueueBroker, RedisAsyncResultBackend
+from dependency_injector.wiring import Provide, inject
 
-from api.meals.brokers import meals_broker as broker
-# from api.health.brokers import health_broker 
-from api.db_clients import event_store
+from api.meals.repository import Meals
+from config import CONFIG
+from dependencies.app import AppContainer
+from dependencies.eventbus import EventBus
 
-# from taskiq.api import run_receiver_task
-from pprint import PrettyPrinter as printer
+logging.config.dictConfig(CONFIG["logging"])
+logger = logging.getLogger(__name__)
 
-from api.meals.meals import Meal
-from api.meals.tasks import add_meal
-from taskiq.api import run_receiver_task
+STOP_EVENT = asyncio.Event()
+FORMATTED_CONFIG = pformat(CONFIG, indent=4)
 
-from config import BROKER_URL, HEALTH_QUEUE, MEALS_QUEUE, TASK_RESULTS_URL
 
-async def main() -> None:
+async def handle_events(subscription, handler_name) -> None:
+    logging.info(
+        f"Started listening to subscription: {id(subscription)}"
+    )
+
+    while not STOP_EVENT.is_set():
+        try:
+            for event in subscription:
+                logging.info(
+                    f"Received event from subscription {id(subscription)}:\n{pformat(event, indent=2)}"
+                )
+            # Prevent CPU overuse
+            await asyncio.sleep(0.1)
+
+        except Exception as e:
+            logging.error(f"Error while handling events: {e}")
+            await asyncio.sleep(0.1)
+
+
+@inject
+async def main(
+    eventbus: EventBus = Provide[AppContainer.eventbus],
+    meals: Meals = Provide[AppContainer.meals],
+):
+    logging.info("Started async main()")
+
+    event_bus_client = eventbus.client()
+
+    logging.info(
+        "Resolved event bus client: %i", id(event_bus_client)
+    )
+
+    meals_subscription = eventbus.subscription.meals()
+
+    logging.info(
+        f"Resolved meals events subscription: {id(meals_subscription)} for {meals_subscription._stream_name}"
+    )
+
+    health_subscription = eventbus.subscription.health()
+
+    logging.info(
+        f"Resolved health events subscription: {id(health_subscription)} for {health_subscription._stream_name}"
+    )
+
+    meals.repository()
+    meals_event_handler = "handler"
 
     try:
-        await broker.startup()
-        while True:
+        logging.info("Start handling incoming events")
 
-            # broker.register_task(
-            #     lambda x: add_meal(x),
-            #     task_name="add_meal",
-            #     my_label=1
-            # )
-
-
-            print("broker.get_all_tasks(): ", broker.get_all_tasks())
-            # print("meals_broker.get_all_tasks(): ", meals_broker.get_all_tasks())
-            stream_name = "meals_added"
-            catchup_subscription = event_store.subscribe_to_stream(
-                stream_name=stream_name, from_end=True
-            )
-            for event in catchup_subscription:
-                # printer(indent=2).pprint(event.data)
-                printer(indent=2).pprint(type(event))
-
-                # if (event):
-                #     eventdata = json.loads(event.decode('utf-8'))
-                #     event.
-                #     printer(indent=2).pprint(eventdata)
-
-                if event.data:
-                    print("event.type : ", event.type)
-                    try:
-                        if event.type == "Meals":
-                            
-                            # await health_broker.startup()
-                            # worker_task = asyncio.create_task(run_receiver_task(meals_broker))
-                            mealdata = Meal.model_validate_json(event.data)
-                            print("meal_name: ", mealdata.meal_name)
-
-                            meals_broker = AioPikaBroker(
-                                url=BROKER_URL, queue_name=HEALTH_QUEUE_QUEUE
-                            ).with_result_backend(
-                                RedisAsyncResultBackend(
-                                    redis_url=TASK_RESULTS_URL
-                                )
-                            )
-
-
-                            # add_meal_task = await add_one.kiq(int(mealdata.calories))
-                            print('broker._queue_name: ', broker._queue_name)
-                            broker._queue_name = "justa_queue"
-                            print('broker._queue_name: ', broker._queue_name)
-                            
-                            add_meal_task = await add_meal.kicker().kiq(mealdata.meal_name)
-                            
-                            print("add_meal_task: ", add_meal_task.task_id)
-                            p = await add_meal_task.get_progress()
-                            print('add_meal_task.p: ',p )
-
-                            result = await add_meal_task.wait_result(timeout=2,with_logs=True)
-                            
-                            print(result.log)
-
-                            print(
-                                f"Task execution took: {result.execution_time} seconds."
-                            )
-
-                            if result.is_err:
-                                print("Error found while executing task.\n")
-
-                            print(f"Returned value: {result.return_value}\n")
-
-                            # worker_task.cancel()
-                            
-                            # try:
-                            #     await worker_task
-                            # except asyncio.CancelledError:
-                            #     print("Worker successfully exited.")
-                                
-                    except Exception as e:
-                            print(e)
-                                
-                    # printer(indent=2).pprint(mealdata)
-
-                    # 1 kick calculation function with data
-
-                # if (event.metadata):
-                #     print(event.metadata)
-                #     printer(indent=2).pprint(event.metadata)
-
-                # printer(event.data)
-                # serializer = MealsSerializer(data=data)
-
-                # Validate the data
-                # if serializer.is_valid():
-                #     # If valid, save the new instance
-                #     meal_instance = serializer.save()
-                #     # send_to_analysis(event.data)
-                #     print("Meal instance created:", meal_instance)
-                # else:
-                #     # If not valid, print the errors
-                #     print("Validation errors:", serializer.errors)
-
-                # client.stub.AddMeal()
-
-            # add_meals("Bread and butter")
-            # Meals.objects.create(user_id=uuid.uuid4(), meal_id=uuid.uuid4(), meal_name=fake.name(), calories=fake.random_digit_not_null())
-            print("Finished event listening")
+        await asyncio.gather(
+            handle_events(
+                meals_subscription, meals_event_handler
+            ),
+            handle_events(
+                health_subscription, meals_event_handler
+            ),
+        )
 
     except KeyboardInterrupt:
-        catchup_subscription.stop()
-        await health_broker.shutdown()
-        await broker.shutdown()
-        print("Task repetition stopped.")
+        logging.error("Application interrupted by keyboard.")
 
-    return
+    except Exception as e:
+        logging.error(f"Error in main loop: {e}")
 
+    finally:
+        STOP_EVENT.set()
 
-# async def main() -> None:
-# Here we define a broker.
-# worker_task = asyncio.create_task(run_receiver_task(broker))
+        logging.info(
+            f"Stopped asyncio event {id(STOP_EVENT)}: {STOP_EVENT.is_set()}"
+        )
+        await asyncio.sleep(0.25)
 
-# Now we register lambda as a task.
-# broker.register_task(
-#     lambda x: add_meal(x),
-#     task_name="add_meal",
-#     my_label=1
-# )
+        event_bus_client.close()
 
-# found = broker.find_task("add_meal")
-# print('found: ', found)
-# Now we can send it.
+        logging.info(
+            f"Closed event bus client {id(event_bus_client)}: {event_bus_client.is_closed}"
+        )
+
+        meals.repository().close()
 
 
-# await found.kiq(x=1)
+def start():
+    logger.info(
+        f"\nStarting setup with config:\n{FORMATTED_CONFIG}\n"
+    )
 
-# await asyncio.sleep(2)
+    app = AppContainer(config=CONFIG)
+    app.init_resources()
+    app.wire(modules=[__name__])
+    app.check_dependencies()
 
-# # worker_task.cancel()
-# try:
-#     await worker_task
-# except asyncio.CancelledError:
-#     print("Worker successfully exited.")
+    logging.info(f"AppContainer set up: {id(app)}")
 
-# await broker.shutdown()
+    # Set up signals that stops the event loop in case of a container/pod shutdown
+    sigint_handler = signal(
+        SIGINT, lambda x: STOP_EVENT.set()
+    )
+    sigterm_handler = signal(
+        SIGTERM, lambda x: STOP_EVENT.set()
+    )
+
+    logging.info(
+        f"Shutdown signals for container shutdowns set up: {id(sigint_handler)}, {id(sigterm_handler)}"
+    )
+
+    logging.info(
+        f"Stopped asyncio event {id(STOP_EVENT)}: {STOP_EVENT.is_set()}"
+    )
+
+    asyncio.run(main())
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    start()
+
+# async def event_listener():
+#     esdb_client = EventStoreDBClient(uri=EVENTSTORE)
+#     meals_subscription = esdb_client.subscribe_to_stream(
+#         stream_name="stream_one", from_end=True
+#     )
+
+#     while True:
+#         for i, event in enumerate(meals_subscription):
+#             data = event.data.decode("utf-8")
+#             meal = Meal.model_validate_json(data)
+#             print("type: ", event.type)
+
+#             if event.type == "InsertMeal":
+#                 MealsEventHandler.handle_insert_event()
+#                 statement, args = MealMutations.insert_meal(
+#                     meal=meal
+#                 )
+
+#                 MealTasks.insert_meal.send(
+#                     statement=statement,
+#                     args=args,
+#                 )
+
+#                 await asyncio.sleep(0.1)
+
+#         print("-----------------------------> Committed \n")
+
+#         print("-----------------------------> Committed \n")

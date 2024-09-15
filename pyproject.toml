@@ -1,25 +1,37 @@
+[tool.pyright]
+venvPath="/home/w0lg0r/.cache/pypoetry/virtualenvs"
+venv="health-analysis-B8A5gI3c-py3.12"
+
 [tool.poetry]
 name = "health-analysis"
 version = "0.1.0"
 description = ""
 authors = ["Your Name <you@example.com>"]
 readme = "README.md"
-packages = [{include = "api", from="src"}]
+packages = [{include = "api", from="src"},{include = "tests"}]
+
+[tool.poetry.scripts]
+main = "src.main:start"
+events = "tests.events:run"
 
 [tool.poetry.dependencies]
 python = "^3.12"
-taskiq = "^0.11.6"
-taskiq-aio-pika = "^0.4.0"
 esdbclient = "^1.1"
 mypy = "^1.11.1"
-psycopg2 = "^2.9.9"
 python-dotenv = "^1.0.1"
 isort = "^5.13.2"
 black = "^24.8.0"
 pylint = "^3.2.6"
-taskiq-redis = "^1.0.0"
-
+pydantic = "^2.8.2"
+dramatiq = {extras = ["rabbitmq", "redis", "watch"], version = "^1.17.0"}
+faker = "^28.0.0"
+psycopg2-binary = "^2.9.9"
+toml = "^0.10.2"
+dependency-injector = "4.42.0b1"
+pyaml = "^24.7.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+

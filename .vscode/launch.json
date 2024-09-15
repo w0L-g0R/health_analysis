@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Poetry my-project with Arguments",
+            "type": "python",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "stopOnEntry": false,
+            "justMyCode": true,
+            "python": "/usr/bin/python3",
+            "cwd": "${workspaceFolder}",
+            "args": "",
+            "module": "poetry run main",
+            "pythonArgs": ["-Xfrozen_modules=off"],
+            "env": {
+                "PYDEVD_DISABLE_FILE_VALIDATION": "1",
+            }
+        }
+    ]
+}
