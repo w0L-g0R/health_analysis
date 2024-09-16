@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 from enum import Enum
 
+from taskiq_aio_pika import AioPikaBroker
+
 from src.domains.meals.events import InsertMealEvent
 from src.domains.meals.queries import InsertMealQuery
 

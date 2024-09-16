@@ -1,9 +1,10 @@
 import logging
 from asyncpg import connect
-from src.shared.async_mixin import AsyncMixin
+
+from src.abstractions.async_mixin import AsyncMixin
 
 
-class TimeScaleDatabase(AsyncMixin):
+class Database(AsyncMixin):
     async def __ainit__(self, config: dict):
         try:
             self.connection = await connect(

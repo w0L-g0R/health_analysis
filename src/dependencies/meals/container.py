@@ -8,24 +8,29 @@ from dependency_injector.providers import (
     Dict,
     Factory,
 )
-
-
 from taskiq_aio_pika import AioPikaBroker
 
-from src.adapters.databases import TimeScaleDatabase
+
+from src.adapters.broker import Broker
+from src.adapters.database import Database
 from src.dependencies.meals.factories import InsertMealQueryFactory, MealQueryFactory
 from src.domains.meals.events import DeleteMealEvent, InsertMealEvent, MealEvents
+from src.tasks.meal_tasks import MealTasks, insert_meal
 
 
 class MealsContainer(DeclarativeContainer):
     config = Configuration()
 
     database = Resource(
-        TimeScaleDatabase,
+        Database,
         config=config.dsn.timescaledb,
     )
 
-    broker = Resource(AioPikaBroker, url=config.dsn.rabbitmq.url)
+    tasks = Dict(
+        {
+            MealTasks.INSERT.value: insert_meal,
+        }
+    )
 
     events = Dict(
         {
@@ -41,4 +46,13 @@ class MealsContainer(DeclarativeContainer):
                 table_name=config.dsn.timescaledb.tables.meals,
             )
         }
+    )
+
+    broker = Resource(
+        Broker,
+        url=config.dsn.rabbitmq.url,
+        tasks=tasks,
+        database=database.provided,
+        events=events,
+        query_factories=query_factories,
     )
