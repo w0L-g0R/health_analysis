@@ -1,21 +1,12 @@
-from taskiq import TaskiqEvents, TaskiqState
-from src.config import CONFIG_DICT
+import subprocess
+import sys
+from src.config import CONFIG_DICT, get_module_path
 from src.dependencies.meals.container import MealsContainer
-from src.tasks.meal_tasks import MealTasks
 
 meals_container = MealsContainer()
 meals_container.config.from_dict(CONFIG_DICT)
 meals_container.init_resources()
 meals_broker = meals_container.broker()
 
-
-# @meals_broker.on_event(TaskiqEvents.WORKER_STARTUP)
-# async def startup(state: TaskiqState) -> None:
-#     # Here we store connection pool on startup for later use.
-#     state.redis = "redis"
-
-
-print("meals_broker: ", meals_broker.get_all_tasks())
-print("meals_broker: ", meals_broker.find_task(task_name=MealTasks.INSERT.value))
-print("MealTasks.INSERT.value: ", MealTasks.INSERT.value)
-print("state: ", meals_broker.state)
+if __name__ == "__main__":
+    meals_broker.start_workers_process(__file__)

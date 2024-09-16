@@ -3,22 +3,12 @@ from enum import Enum
 from pathlib import Path
 from typing import Annotated
 
-from src.config import BASE_DIR_PATH
+from src.config import BASE_DIR_PATH, get_module_path
 
 from taskiq import Context, TaskiqDepends
 
 from src.dependencies.meals.factories import MealQueryFactory
 from src.domains.meals.events import InsertMealEvent, MealEvents
-
-
-MODULE_PATH = (
-    Path(__file__)
-    .resolve()
-    .relative_to(BASE_DIR_PATH)
-    .with_suffix("")
-    .as_posix()
-    .replace("/", ".")
-)
 
 
 async def insert_meal(
@@ -35,4 +25,4 @@ async def insert_meal(
 
 
 class MealTasks(Enum):
-    INSERT = f"{MODULE_PATH}:{insert_meal.__name__}"
+    INSERT = f"{get_module_path(__file__)}:{insert_meal.__name__}"

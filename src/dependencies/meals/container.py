@@ -51,6 +51,7 @@ class MealsContainer(DeclarativeContainer):
     broker = Resource(
         Broker,
         url=config.dsn.rabbitmq.url,
+        name="meals_broker",
         tasks=tasks,
         database=database.provided,
         events=events,
