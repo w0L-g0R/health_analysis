@@ -1,31 +1,26 @@
 import asyncio
 import subprocess
 import sys
+import logging
 from typing import Callable, Dict
-from taskiq import AsyncBroker, TaskiqEvents, TaskiqState
+from taskiq import TaskiqEvents, TaskiqState
 from taskiq_aio_pika import AioPikaBroker
 
-from src.adapters.database import Database
-from dependency_injector.providers import (
-    Resource,
-)
-
-import logging
-
 from src.config import get_module_path, setup_logging
+from src.adapters.databases import TimeScaleDb
 
 
 setup_logging()
 logger = logging.getLogger(__name__)
 
 
-class Broker(AioPikaBroker):
+class TaskiqBroker(AioPikaBroker):
     def __init__(
         self,
         url,
         name: str,
         tasks: Dict[str, Callable],
-        database,
+        database: TimeScaleDb,
         events: Dict,
         query_factories: Dict,
     ):
@@ -47,7 +42,7 @@ class Broker(AioPikaBroker):
 
     def add_event_handlers(
         self,
-        database,
+        database: TimeScaleDb,
         events: Dict,
         query_factories: Dict,
     ):
@@ -73,7 +68,7 @@ class Broker(AioPikaBroker):
     async def handle_startup_worker_event(
         self,
         state: TaskiqState,
-        database,
+        database: TimeScaleDb,
         events: Dict,
         query_factories: Dict,
     ):

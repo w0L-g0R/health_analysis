@@ -1,5 +1,3 @@
-import subprocess
-import sys
 from src.config import CONFIG_DICT, get_module_path
 from src.dependencies.meals.container import MealsContainer
 

@@ -11,24 +11,24 @@ from dependency_injector.providers import (
 from taskiq_aio_pika import AioPikaBroker
 
 
-from src.adapters.broker import Broker
-from src.adapters.database import Database
+from src.adapters.brokers import TaskiqBroker
+from src.adapters.databases import TimeScaleDb
 from src.dependencies.meals.factories import InsertMealQueryFactory, MealQueryFactory
 from src.domains.meals.events import DeleteMealEvent, InsertMealEvent, MealEvents
-from src.tasks.meal_tasks import MealTasks, insert_meal
+from src.tasks.meal_tasks import MealTaskPath, MealsTasks
 
 
 class MealsContainer(DeclarativeContainer):
     config = Configuration()
 
     database = Resource(
-        Database,
+        TimeScaleDb,
         config=config.dsn.timescaledb,
     )
 
     tasks = Dict(
         {
-            MealTasks.INSERT.value: insert_meal,
+            MealTaskPath.INSERT.value: MealsTasks.insert_meal,
         }
     )
 
@@ -49,7 +49,7 @@ class MealsContainer(DeclarativeContainer):
     )
 
     broker = Resource(
-        Broker,
+        TaskiqBroker,
         url=config.dsn.rabbitmq.url,
         name="meals_broker",
         tasks=tasks,

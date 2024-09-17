@@ -4,7 +4,7 @@ from asyncpg import connect
 from src.abstractions.async_mixin import AsyncMixin
 
 
-class Database(AsyncMixin):
+class TimeScaleDb(AsyncMixin):
     async def __ainit__(self, config: dict):
         try:
             self.connection = await connect(
