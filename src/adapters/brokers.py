@@ -3,11 +3,19 @@ import subprocess
 import sys
 import logging
 from typing import Callable, Dict
+from aio_pika import ExchangeType
 from taskiq import TaskiqEvents, TaskiqState
 from taskiq_aio_pika import AioPikaBroker
 
 from src.config import get_module_path, setup_logging
 from src.adapters.databases import TimeScaleDb
+from src.exceptions.broker_exceptions import (
+    BrokerRuntimeError,
+    BrokerShutdownError,
+    BrokerStartupError,
+    InvalidExchangeNameError,
+    InvalidRoutingKeyError,
+)
 
 
 setup_logging()
@@ -17,14 +25,31 @@ logger = logging.getLogger(__name__)
 class TaskiqBroker(AioPikaBroker):
     def __init__(
         self,
-        url,
+        url: str,
         name: str,
         tasks: Dict[str, Callable],
         database: TimeScaleDb,
         events: Dict,
         query_factories: Dict,
+        exchange_name: str,
+        exchange_type: ExchangeType,
+        routing_key: str,
+        queue_name: str,
     ):
-        super().__init__(url)
+        if not exchange_name:
+            raise InvalidExchangeNameError()
+
+        if not routing_key:
+            raise InvalidRoutingKeyError()
+
+        super().__init__(
+            url=url,
+            exchange_name=exchange_name,
+            queue_name=queue_name,
+            declare_exchange=True,
+            declare_queues=True,
+            kwargs={"durable": True},
+        )
         self.name = name
         self.register_tasks(tasks)
         self.add_event_handlers(
@@ -104,10 +129,50 @@ class TaskiqBroker(AioPikaBroker):
             "worker",
             f"{get_module_path(file)}:{self.name}",
         ]
-        return subprocess.Popen(cmd)
+        process = None
+
+        try:
+            process = subprocess.Popen(cmd)
+            process.wait()
+
+        except KeyboardInterrupt:
+            logger.info("Keyboard interrupt received. Terminating the worker process.")
+            if process:
+                process.terminate()
+                process.wait()
+
+        except RuntimeError as re:
+            logger.error(f"A runtime error occurred: {re}")
+            if process:
+                process.terminate()
+                process.wait()
+            raise BrokerRuntimeError(f"Runtime error in broker: {re}")
+
+        except Exception as e:
+            logger.error(f"An unexpected error occurred: {e}")
+            if process:
+                process.terminate()
+                process.wait()
+            raise BrokerStartupError(f"Unexpected error in broker startup: {e}")
+
+        finally:
+            if process and process.poll() is None:
+                logger.info("Shutting down the worker process.")
+                process.terminate()
+                process.wait()
+                raise BrokerShutdownError("Error during broker shutdown.")
 
     def __str__(self):
         return self.name
 
     def __repr__(self):
-        return f"Broker(name={self.name})"
+        return f"""
+                Broker with
+                    name: {self.name}, 
+                    id: {id(self)}, 
+                    exchange_name: {self._exchange_name}, 
+                    exchange_type: {self._exchange_type}, 
+                    queue_name: {self._queue_name}, 
+                    routing_key: {self._routing_key})"
+                    tasks: {self.get_all_tasks()})"
+                """

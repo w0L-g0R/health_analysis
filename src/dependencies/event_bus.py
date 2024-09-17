@@ -8,7 +8,6 @@ from dependency_injector.providers import (
 )
 
 from src.adapters.clients import EventBusClient
-from src.handlers.meals_handler import MealsHandler
 from src.tasks.meal_tasks import MealsTasks
 
 
@@ -19,12 +18,9 @@ from src.tasks.meal_tasks import MealsTasks
 class EventBusContainer(DeclarativeContainer):
     config = Configuration()
 
-    meals_handler = Resource(MealsHandler, tasks=MealsTasks)
-
     meal_events_client = Resource(
         EventBusClient,
         uri=config.dsn.eventstoredb.uri,
-        handler=meals_handler,
         stream_name=config.subscriptions.meals.stream,
         from_end=config.subscriptions.meals.from_end,
     )

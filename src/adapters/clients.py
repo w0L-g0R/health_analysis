@@ -14,13 +14,10 @@ logger = logging.getLogger(__name__)
 
 
 class EventBusClient(EventStoreDBClient):
-    def __init__(
-        self, uri: str, stream_name: str, from_end: bool, handler: EventHandler
-    ):
+    def __init__(self, uri: str, stream_name: str, from_end: bool):
         super().__init__(uri)
         self.stream_name = stream_name
         self.from_end = from_end
-        self.event_handler = handler
 
     @property
     def tasks(self):

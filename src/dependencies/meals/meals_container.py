@@ -1,3 +1,4 @@
+from aio_pika import ExchangeType
 from dependency_injector.containers import (
     DeclarativeContainer,
 )
@@ -56,4 +57,8 @@ class MealsContainer(DeclarativeContainer):
         database=database.provided,
         events=events,
         query_factories=query_factories,
+        exchange_name="what_the_health.meals",
+        exchange_type=ExchangeType.DIRECT,
+        routing_key="routing_key_meals",
+        queue_name="queue_meals",
     )

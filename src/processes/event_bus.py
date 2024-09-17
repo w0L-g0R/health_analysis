@@ -79,18 +79,22 @@ async def main(
 
     for broker in [meals_broker]:
         await broker.startup()
+        logger.info(f"Starting: {broker.__repr__()}")
 
     meal_events_client.tasks = meals_broker.get_all_tasks()
 
+    tasks = [meal_events_client.handle_events()]
+
     try:
-        await gather(meal_events_client.handle_events())
-        # await meal_events_client.start_listen_to_events()
+        await gather(*tasks)
 
     except Exception as e:
-        logging.error(f"Error in start_event_subscriptons: {e}")
+        logging.error(f"Error on handle_events: {e}")
 
-    # finally:
-    #     # STOP_EVENT.set()
+    finally:
+        meal_events_client.close()
+        await meals_broker.shutdown()
+        # STOP_EVENT.set()
 
     #     logging.info(f"Stopped asyncio event {id(STOP_EVENT)}: {STOP_EVENT.is_set()}")
     #     await asyncio.sleep(0.25)

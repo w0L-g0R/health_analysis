@@ -1,5 +1,5 @@
 from src.config import CONFIG_DICT, get_module_path
-from src.dependencies.meals.container import MealsContainer
+from src.dependencies.meals.meals_container import MealsContainer
 
 meals_container = MealsContainer()
 meals_container.config.from_dict(CONFIG_DICT)

@@ -25,7 +25,7 @@ def run():
             calories=float("{:.2f}".format(FAKE.random.uniform(10, 50))),
         )
 
-        pp(f"MEAL:\n{meal}\n")
+        pp(meal.meal_name)
 
         event = NewEvent(
             type=MealEvents.INSERT.value,
