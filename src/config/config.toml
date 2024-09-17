@@ -8,9 +8,6 @@
     port="5433"
     database="meals"
 
-            [dsn.timescaledb.tables]
-            meals="meals"
-            
     [dsn.eventstoredb]
     uri="esdb://localhost:2113?tls=false"
 
@@ -19,15 +16,24 @@
 
     [dsn.rabbitmq]
     url="amqp://guest:guest@127.0.0.1:5672"
-    user="guest"
-    password="guest"
-    host="127.0.0.1"
-    port="5672"
-    
-    # String values must be one of 'fanout', 'direct', 'topic',
-[queues]
-    [queues.meals]
-        insert="MealInsert"
+
+
+[rabbitmq]    
+    [rabbitmq.meals]
+        queue="meals.queue"
+        exchange_name="what_the_health.meals_exchange"
+        exchange_type="what_the_health.direct"
+            # FANOUT || = "fanout"
+            # 
+            # TOPIC = "topic"
+            # HEADERS = "headers"
+            # X_DELAYED_MESSAGE = "x-delayed-message"
+            # X_CONSISTENT_HASH = "x-consistent-hash"
+            # X_MODULUS_HASH = "x-modulus-hash"
+
+            [rabbitmq.exchanges]
+                [rabbitmq.exchanges.]
+
 
 [subscriptions]
 
