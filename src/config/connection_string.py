@@ -1,59 +1,66 @@
 from enum import Enum
-from typing import List, Optional, Tuple, Union
+from typing import Any, List, Optional, Self, Tuple, Union
 
 from pydantic import (
     AmqpDsn,
     BaseModel,
     Field,
     PostgresDsn,
+    computed_field,
     field_validator,
     model_validator,
     validator,
 )
-from pydantic_core import MultiHostUrl
+from pydantic_core import MultiHostUrl, PydanticCustomError
 
 
-class ConnectionStringMissingParameterError(ValueError):
-    def __init__(self, missing_params: List[str], database: str):
-        super().__init__(
-            f"Missing following parameters of {database} connection string: {', '.join(missing_params)}"
-        )
+CONNECTION_STRING_MISSING_PARAMETER_ERROR = PydanticCustomError(
+    "UriInArgsErro",
+    'Argument "uri" gets set after model validation and shoud not be passed on init!',
+)
 
 
-# class BaseConnectionString(BaseModel):
-#     host: str
-#     port: Union[int, str]
-
-#     @staticmethod
-#     def check_missing_params(values, params):
-#         missing_params = [
-#             param for param in params if param not in values or not values[param]
-#         ]
-#         return missing_params
-
-
-class TimescaleDBCredentials(BaseModel):
+class ConnectionStringTimescaleDb(BaseModel):
     user: str
     password: str
     host: str
-    port: Union[int, str]
-    uri: PostgresDsn | None = Field(default=None, validate_default=False)
+    port: Union[int, str] = Field(coerce_numbers_to_str=True)
+    uri: Optional[PostgresDsn] = Field(
+        default=None, validate_default=False
+    )
 
-    # @property
-    # def dsn(self):
-    #     uri = MultiHostUrl(
-    #         f"postgres://{self.user}:{self.password}@{self.host}:{self.port}"
-    #     )
-    #     return uri.__str__()
+    @computed_field(return_type=str)
+    @property
+    def dns(self):
+        return str(self.uri)
 
-    @validator("uri", pre=True, always=True)
-    def validate_uri(cls, value, values):
-        # If the value is None, construct the DSN using the user inputs
-        if value is None:
-            dsn = f"postgres://{values['user']}:{values['password']}@{values['host']}:{values['port']}"
-            # Pydantic will automatically validate if this is a correct PostgresDsn
-            return dsn
-        return value
+    @model_validator(mode="before")
+    @classmethod
+    def check_uri_omitted(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            assert (
+                "uri" not in data
+            ), CONNECTION_STRING_MISSING_PARAMETER_ERROR
+        return data
+
+    @model_validator(mode="after")
+    def create_uri(self) -> Self:
+        if (
+            self.user is not None
+            and self.password is not None
+            and self.host is not None
+            and self.port is not None
+        ):
+            self.uri = MultiHostUrl.build(
+                scheme="postgres",
+                username=self.user,
+                password=self.password,
+                host=self.host,
+                port=int(self.port),
+            )
+        else:
+            raise ValueError("passwords do not match")
+        return self
 
     # @field_validator("dsn", mode="before")
     # def assemble_dsn(cls, v, values):

@@ -2,7 +2,8 @@ from pydantic_core import MultiHostUrl
 import pytest
 from pydantic import ValidationError
 from src.config.connection_string import (
-    TimescaleDBCredentials,
+    CONNECTION_STRING_MISSING_PARAMETER_ERROR,
+    ConnectionStringTimescaleDb,
     # EventStoreDBConnectionString,
     # RabbitMQConnectionString,
     # ConnectionStringMissingParameterError,
@@ -19,11 +20,40 @@ from src.config.connection_string import (
 
 
 def test_resolve_timescale_db_success():
-    connection = TimescaleDBCredentials(
-        user="user", password="password", host="localhost", port="5432"
+    connection = ConnectionStringTimescaleDb(
+        user="user",
+        password="password",
+        host="localhost",
+        port="5432",
     )
 
-    assert connection.uri.__str__() == "postgres://user:password@localhost:5432"
+    assert (
+        connection.dns
+        == "postgres://user:password@localhost:5432"
+    )
+
+
+def test_uri_in_args_throws_error():
+    with pytest.raises(ValidationError) as exc_info:
+        uri = MultiHostUrl.build(
+            scheme="postgres",
+            username="user",
+            password="password",
+            host="host",
+            port=int("1234"),
+        )
+
+        ConnectionStringTimescaleDb(
+            user="user",
+            password="password",
+            host="localhost",
+            port="5432",
+            uri=uri,
+        )
+    print(exc_info.type)
+    assert exc_info.match(
+        CONNECTION_STRING_MISSING_PARAMETER_ERROR.message
+    )
 
 
 # def test_resolve_eventstore_db_missing_query_params():

@@ -38,6 +38,7 @@ taskiq = {extras = ["reload"], version = "^0.11.7"}
 pytest = "^8.3.3"
 pytest-colordots = "^1.1"
 coloredlogs = "^15.0.1"
+pytest-print = "^1.0.2"
 
 [tool.isort]
 profile = "black"
