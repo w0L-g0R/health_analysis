@@ -1,9 +1,10 @@
-def validate_toml_config(config: dict):
+def validate_config(config: dict):
     match config:
         case {
-            "user": {"player_x": {"color": str()}, "player_o": {"color": str()}},
+            "user": {"player_x": str()},
+            "player_o": {"color": str()},
             "constant": {"board_size": int()},
-            "server": {"url": str()},
+            "server": {"host": str(), "port": str(), "user": str(), "password": str()},
         }:
             pass
         case _:

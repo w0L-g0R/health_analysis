@@ -1,57 +1,68 @@
-[dsn]
+[timescaledb]
 
-    [dsn.timescaledb]
-    dsn="postgres://user:password@localhost:5433"
+    [timescaledb.credentials]
+    # TEMPLATE: dsn="postgres://user:password@localhost:5433" 
     user="user"
     password="password"
     host="localhost"
     port="5433"
-    database="meals"
 
-    [dsn.eventstoredb]
-    uri="esdb://localhost:2113?tls=false"
+[eventstoredb]
 
-    [dsn.redis]
-    uri="redis://localhost:6379/0"
+    [eventstoredb.credentials]
+    # TEMPLATE: uri="esdb://localhost:2113?tls=false"
+    user="user"
+    password="password"
+    host="localhost"
+    port="2113"
+    tls="false"
 
-    [dsn.rabbitmq]
-    url="amqp://guest:guest@127.0.0.1:5672"
+    [eventstoredb.subscriptions]
+
+        [eventstoredb.subscriptions.meals]
+            stream="StreamMeals"
+            from_end=true
+
+        [eventstoredb.subscriptions.health]
+            stream="StreamHealth"
+            from_end=true
+
+    [eventstoredb.events]
+
+        [eventstoredb.events.meals]
+            insert="InsertMeal"
+            deletes="DeleteMeal"
+
+        [eventstoredb.events.health]
+            insert="InsertHealth"
+            delete="DeleteHealth"
 
 
-[rabbitmq]    
-    [rabbitmq.meals]
-        queue="meals.queue"
-        exchange_name="what_the_health.meals_exchange"
-        exchange_type="what_the_health.direct"
-            # FANOUT || = "fanout"
-            # 
-            # TOPIC = "topic"
-            # HEADERS = "headers"
-            # X_DELAYED_MESSAGE = "x-delayed-message"
-            # X_CONSISTENT_HASH = "x-consistent-hash"
-            # X_MODULUS_HASH = "x-modulus-hash"
+[rabbitmq]
 
-            [rabbitmq.exchanges]
-                [rabbitmq.exchanges.]
+    [rabbitmq.credentials]
+    # TEMPLATE: url="amqp://guest:guest@localhost:5672"
+    user="guest"
+    password="guest"
+    host="localhost"
+    port="5672"
 
+    [rabbitmq.queues]
 
-[subscriptions]
+        [rabbitmq.queues.meals]
+        queue_name="meals.queue"
 
-    [subscriptions.meals]
-        stream="meals_stream"
-        from_end=true
+        [rabbitmq.queues.health]
+        queue_name="meals.health"
 
-    [subscriptions.health]
-        stream="health_stream"
-        from_end=true
+    [rabbitmq.exchanges]
 
-    [subscriptions.supps]
-        stream="supps_stream"
-        from_end=true
+        [rabbitmq.exchanges.meals]
+        exchange_name="meals.exchange"
 
-[events]
-    [events.meals]
-        insert="MealInsert"
+        [rabbitmq.exchanges.health]
+        exchange_name="health.exchange"
+
 
 [logging]
 version = 1
@@ -60,6 +71,7 @@ version = 1
     format = "[%(asctime)s] [%(levelname)s] [%(filename)s:%(funcName)s:%(lineno)d]: %(message)s"
 
     [logging.handlers]
+    
         [logging.handlers.console]
         class = "logging.StreamHandler"
         level = "DEBUG"
@@ -69,3 +81,4 @@ version = 1
     [logging.root]
     level = "DEBUG"
     handlers = ["console"]
+

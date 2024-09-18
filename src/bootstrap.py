@@ -2,7 +2,7 @@ import subprocess
 import sys
 import logging
 
-from src.config import setup_logging
+from src.config.config import setup_logging
 
 # Configure logging
 setup_logging()

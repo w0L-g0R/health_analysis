@@ -7,14 +7,13 @@ from aio_pika import ExchangeType
 from taskiq import TaskiqEvents, TaskiqState
 from taskiq_aio_pika import AioPikaBroker
 
-from src.config import get_module_path, setup_logging
+from src.config.config import get_module_path, setup_logging
 from src.adapters.databases import TimeScaleDb
-from src.exceptions.broker_exceptions import (
+from src.adapters.exceptions.brokers import (
     BrokerRuntimeError,
     BrokerShutdownError,
     BrokerStartupError,
     InvalidExchangeNameError,
-    InvalidRoutingKeyError,
 )
 
 
@@ -32,15 +31,10 @@ class TaskiqBroker(AioPikaBroker):
         events: Dict,
         query_factories: Dict,
         exchange_name: str,
-        exchange_type: ExchangeType,
-        routing_key: str,
         queue_name: str,
     ):
         if not exchange_name:
             raise InvalidExchangeNameError()
-
-        if not routing_key:
-            raise InvalidRoutingKeyError()
 
         super().__init__(
             url=url,

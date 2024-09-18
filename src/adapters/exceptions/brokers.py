@@ -26,9 +26,3 @@ class InvalidExchangeNameError(Exception):
     def __init__(self, message="Exchange_name must not be None or empty"):
         self.message = message
         super().__init__(self.message)
-
-
-class InvalidRoutingKeyError(Exception):
-    def __init__(self, message="Routing_key must not be None or empty"):
-        self.message = message
-        super().__init__(self.message)
