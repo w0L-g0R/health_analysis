@@ -1,94 +1,114 @@
-from pydantic_core import MultiHostUrl
+import logging
+from pprint import pp
+from pydantic_core import MultiHostUrl, PydanticCustomError
 import pytest
 from pydantic import ValidationError
 from src.config.connection_string import (
-    CONNECTION_STRING_MISSING_PARAMETER_ERROR,
+    ConnectionStringError,
     ConnectionStringTimescaleDb,
-    # EventStoreDBConnectionString,
-    # RabbitMQConnectionString,
-    # ConnectionStringMissingParameterError,
+    EventStoreDBConnectionString,
 )
 
-
-# def test_resolve_timescale_db_missing_params():
-#     with pytest.raises(ValidationError) as exc_info:
-#         TimescaleDBConnectionString(host="localhost", port=5432, user="None", )
-
-#     assert "Missing following parameters of timescale_db connection string" in str(
-#         exc_info.value
-#     )
+log = logging.getLogger(__name__)
 
 
-def test_resolve_timescale_db_success():
-    connection = ConnectionStringTimescaleDb(
-        user="user",
-        password="password",
-        host="localhost",
-        port="5432",
-    )
-
-    assert (
-        connection.dns
-        == "postgres://user:password@localhost:5432"
-    )
+@pytest.fixture
+def params():
+    return {
+        "scheme": "postgres",
+        "user": "user",
+        "password": "password",
+        "host": "localhost",
+        "port": 5432,
+    }
 
 
-def test_uri_in_args_throws_error():
-    with pytest.raises(ValidationError) as exc_info:
+@pytest.mark.connection_string
+class TestConnectionString:
+    def test_should_resolve_timescale_db(self, params):
+        # ACT
+        connection = ConnectionStringTimescaleDb(
+            user=params["user"],
+            password=params["password"],
+            host=params["host"],
+            port=params["port"],
+        )
+
+        # ASSERT
+        assert (
+            connection.dns
+            == f"{params['scheme']}://{params['user']}:{params['password']}@{params['host']}:{params['port']}"
+        )
+
+    def test_should_resolve_eventstore_db_with_tls(self, params):
+        # ACT
+        connection = EventStoreDBConnectionString(
+            user=params["user"],
+            password=params["password"],
+            host=params["host"],
+            port=params["port"],
+            tls=True,
+        )
+
+        # ASSERT
+        assert (
+            connection.dns
+            == f"esdb://{params['user']}:{params['password']}@{params['host']}:{params['port']}?tls=true"
+        )
+
+    def test_should_resolve_eventstore_db_with_no_tls(self, params):
+        # ACT
+        connection = EventStoreDBConnectionString(
+            user=params["user"],
+            password=params["password"],
+            host=params["host"],
+            port=params["port"],
+            tls=False,
+        )
+
+        # ASSERT
+        assert connection.dns == f"esdb://{params['host']}:{params['port']}?tls=false"
+
+    def test_should_resolve_rabbitmq(self, params):
+        # ACT
+        connection = ConnectionStringTimescaleDb(
+            user=params["user"],
+            password=params["password"],
+            host=params["host"],
+            port=params["port"],
+        )
+        # ASSERT
+        assert (
+            connection.dns
+            == f"{params['scheme']}://{params['user']}:{params['password']}@{params['host']}:{params['port']}"
+        )
+
+    def test_should_throw_when_uri_passed_to_init(self, params):
+        # ARRANGE
         uri = MultiHostUrl.build(
-            scheme="postgres",
-            username="user",
-            password="password",
-            host="host",
-            port=int("1234"),
+            scheme=params["scheme"],
+            username=params["user"],
+            password=params["password"],
+            host=params["host"],
+            port=params["port"],
         )
 
-        ConnectionStringTimescaleDb(
-            user="user",
-            password="password",
-            host="localhost",
-            port="5432",
-            uri=uri,
+        # ACT
+        with pytest.raises(ValidationError) as exc_info:
+            ConnectionStringTimescaleDb(
+                user=params["user"],
+                password=params["password"],
+                host=params["host"],
+                port=params["port"],
+                uri=uri,
+            )
+
+        # ASSERT
+        assert (
+            exc_info.value.errors()[0]["msg"]
+            == ConnectionStringError.URI_FOUND_IN_ARGS.value
         )
-    print(exc_info.type)
-    assert exc_info.match(
-        CONNECTION_STRING_MISSING_PARAMETER_ERROR.message
-    )
-
-
-# def test_resolve_eventstore_db_missing_query_params():
-#     with pytest.raises(ConnectionStringMissingParameterError) as exc_info:
-#         EventStoreDBConnectionString(host="localhost", port=2113)
-#     assert (
-#         "Missing following parameters of eventstore_db connection string: query_params"
-#         in str(exc_info.value)
-#     )
-
-
-# def test_resolve_eventstore_db_success():
-#     resolver = EventStoreDBConnectionString(
-#         host="localhost",
-#         port=2113,
-#         query_params=[("tls", "false")],
-#     )
-#     assert resolver.uri == "esdb://localhost:2113?tls=false"
-
-
-# def test_resolve_rabbit_mq_missing_params():
-#     with pytest.raises(ConnectionStringMissingParameterError) as exc_info:
-#         RabbitMQConnectionString(
-#             host="localhost", port=5672, user="test", password="test"
-#         )
-#     assert "Missing following parameters of rabbit_mq connection string" in str(
-#         exc_info.value
-#     )
-
-
-# def test_resolve_rabbit_mq_success():
-#     resolver = RabbitMQConnectionString(
-#         host="localhost",
-#         port=5672,
-#         user="user",
-#         password="password",
-#     )
-#     assert resolver.uri == "amqp://user:password@localhost:5672"
+        assert (
+            exc_info.value.errors()[0]["type"]
+            == ConnectionStringError.URI_FOUND_IN_ARGS
+        )

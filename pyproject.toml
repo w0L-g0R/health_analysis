@@ -20,7 +20,6 @@ events = "tests.events:run"
 [tool.poetry.dependencies]
 python = "^3.12"
 esdbclient = "^1.1"
-mypy = "^1.11.1"
 python-dotenv = "^1.0.1"
 black = "^24.8.0"
 pylint = "^3.2.6"
@@ -33,12 +32,36 @@ pyaml = "^24.7.0"
 asyncpg = "^0.29.0"
 taskiq-dependencies = "^1.5.3"
 taskiq-aio-pika = "^0.4.1"
-isort = "^5.13.2"
-taskiq = {extras = ["reload"], version = "^0.11.7"}
+rich = "^13.8.1"
+
+
+[tool.pytest.ini_options]
+addopts = """
+    -v 
+    -rp 
+    -s 
+    -l 
+    --tb=auto
+"""
+log_cli=true
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+log_cli_format = "%(asctime)s - %(name)s %(levelname)s %(message)s"
+log_level="INFO"
+markers = [
+    "connection_string: marks tests that require a connection string",
+    "config_validations: marks tests that validate configuration",
+]
+
+[tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"
 pytest-colordots = "^1.1"
-coloredlogs = "^15.0.1"
 pytest-print = "^1.0.2"
+ruff = "^0.4.4"  
+black = "^24.4.2"  
+coloredlogs = "^15.0.1"
+isort = "^5.13.2"
+mypy = "^1.11.1"
+taskiq = {extras = ["reload"], version = "^0.11.7"}
 
 [tool.isort]
 profile = "black"

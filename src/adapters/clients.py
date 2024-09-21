@@ -38,19 +38,20 @@ class EventBusClient(EventStoreDBClient):
             )
         except Exception as e:
             print(e)
+            return
 
         try:
-            subscription = self.subscribe_to_stream(
-                stream_name=self.stream_name, from_end=self.from_end
-            )
+            # subscription = self.subscribe_to_stream(
+            #     stream_name=self.stream_name, from_end=self.from_end
+            # )
+
             logger.info(f"Subscribed to stream {subscription}:{self.stream_name}")
+
             while True:
                 for event in subscription:
                     logger.info(
                         f"Received event from subscription {id(subscription)}:\n{pformat(event, indent=2)}"
                     )
-
-                    # await self.handler.handle(event)
 
                     match event.type:
                         case MealEvents.INSERT.value:
