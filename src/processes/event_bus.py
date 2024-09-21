@@ -2,7 +2,7 @@
 # import asyncio
 
 
-# from src.config import CONFIG_DICT, setup_logging
+# from src.config.config import CONFIG_DICT, setup_logging
 # from dependency_injector.wiring import Provide, inject
 
 # from src.dependencies.events_bus import EventBusContainer, MealEventBusContainer
@@ -48,7 +48,7 @@ import asyncio
 import logging
 
 from src.adapters.clients import EventBusClient
-from src.config import CONFIG_DICT, setup_logging
+from src.config.config import CONFIG_DICT, setup_logging
 from src.dependencies.event_bus import EventBusContainer
 from dependency_injector.containers import (
     DeclarativeContainer,

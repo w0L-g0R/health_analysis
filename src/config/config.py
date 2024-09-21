@@ -1,11 +1,12 @@
 import logging
 import logging.config
 from pathlib import Path
+from typing import Literal, Union
 
+from pydantic import BaseModel, HttpUrl, PostgresDsn
 from toml import load
 
 BASE_DIR_PATH = Path.cwd()
-
 CONFIG_FILE_PATH = Path(__file__).parent / "config.toml"
 
 with open(CONFIG_FILE_PATH, "r") as file:

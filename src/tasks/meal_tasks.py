@@ -3,7 +3,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Annotated
 
-from src.config import BASE_DIR_PATH, get_module_path
+from src.config.config import BASE_DIR_PATH, get_module_path
 
 from taskiq import Context, TaskiqDepends
 
