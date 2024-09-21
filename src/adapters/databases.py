@@ -1,4 +1,5 @@
 import logging
+from typing import Tuple
 from asyncpg import connect
 
 from src.abstractions.async_mixin import AsyncMixin
@@ -21,7 +22,7 @@ class TimeScaleDb(AsyncMixin):
             logging.error(f"Error initializing connection: {e}")
             raise
 
-    async def execute(self, statement, args):
+    async def execute(self, statement: str, args: Tuple):
         try:
             if self.connection:
                 await self.connection.execute(statement, *args)

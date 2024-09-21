@@ -1,4 +1,4 @@
-from src.config import CONFIG_DICT, get_module_path
+from src.config.config import CONFIG_DICT, get_module_path
 from src.dependencies.meals.meals_container import MealsContainer
 
 meals_container = MealsContainer()
