@@ -1,6 +1,9 @@
-from pydantic import ValidationError
+from typing import Callable, Dict, Optional
+from pydantic import PostgresDsn, ValidationError
+from pydantic_core import Url
 import pytest
 from src.config.connection_string import (
+    BaseConnectionString,
     ConnectionStringTimescaleDb,
     EventStoreDBConnectionString,
     RabbitMQConnectionString,
@@ -10,10 +13,11 @@ from src.config.exceptions import (
     EmptyValueErrorMessages,
     InvalidConfigurationError,
 )
+from pprint import pformat
 
 
 @pytest.mark.validation
-def validate_config(config: dict):
+def validate_config(config: dict) -> dict[str, PostgresDsn | Url | None]:
     try:
         match config:
             case {
@@ -22,22 +26,40 @@ def validate_config(config: dict):
                     "eventstoredb": eventstoredb_config,
                     "rabbitmq": rabbitmq_config,
                 },
-                "ports": ports_config,
+                "databases": databases_config,
+                "streams": streams_config,
+                "queues": queues_config,
+                "exchanges": exchanges_config,
                 "events": events_config,
                 "logging": dict(),
             }:
                 # Validate the dns configurations using Pydantic models
-                ConnectionStringTimescaleDb(**timescaledb_config)
-                EventStoreDBConnectionString(**eventstoredb_config)
-                RabbitMQConnectionString(**rabbitmq_config)
+                connection_timescale_db = ConnectionStringTimescaleDb(
+                    **timescaledb_config
+                )
+                connection_event_store_db = EventStoreDBConnectionString(
+                    **eventstoredb_config
+                )
+                connection_rabbit_mq = RabbitMQConnectionString(**rabbitmq_config)
 
-                # Validate that ports and events values are not empty strings
-                for key, value in ports_config.items():
-                    for sub_key, sub_value in value.items():
-                        if not sub_value:
-                            raise EmptyValueError(
-                                f"{EmptyValueErrorMessages.PORTS.value} {key}.{sub_key}"
-                            )
+                for key, value in streams_config.items():
+                    if not value:
+                        raise EmptyValueError(
+                            f"{EmptyValueErrorMessages.STREAMS.value} {key}"
+                        )
+
+                for key, value in queues_config.items():
+                    if not value:
+                        raise EmptyValueError(
+                            f"{EmptyValueErrorMessages.QUEUES.value} {key}"
+                        )
+
+                for key, value in exchanges_config.items():
+                    if not value:
+                        raise EmptyValueError(
+                            f"{EmptyValueErrorMessages.EXCHANGES.value} {key}"
+                        )
+
                 for key, value in events_config.items():
                     for sub_key, sub_value in value.items():
                         if not sub_value:
@@ -45,8 +67,24 @@ def validate_config(config: dict):
                                 f"{EmptyValueErrorMessages.EVENTS.value} {key}.{sub_key}"
                             )
 
-            case _:
-                raise InvalidConfigurationError(f"Invalid configuration: {config}")
+                for key, value in databases_config.items():
+                    if not value:
+                        raise EmptyValueError(
+                            f"{EmptyValueErrorMessages.DATABASES.value} {key}"
+                        )
 
+            case _:
+                raise InvalidConfigurationError(
+                    f"Invalid configuration: {pformat(config)}"
+                )
+
+        return {
+            "uri_timescale_db": connection_timescale_db.uri,
+            "uri_event_store_db": connection_event_store_db.uri,
+            "uri_rabbit_mq": connection_rabbit_mq.uri,
+        }
+        
     except ValidationError as e:
-        raise InvalidConfigurationError(f"PydanticCustomError: {e}")
+        raise InvalidConfigurationError(
+            f"PydanticCustomError: {e}"
+        )

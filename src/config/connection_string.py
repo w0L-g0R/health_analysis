@@ -9,11 +9,17 @@ from pydantic import (
     computed_field,
     model_validator,
 )
-from pydantic_core import MultiHostUrl, PydanticCustomError, Url
+from pydantic_core import (
+    MultiHostUrl,
+    PydanticCustomError,
+    Url,
+)
 
 
 class ConnectionStringError(str, Enum):
-    URI_FOUND_IN_ARGS = "'Uri' should not be passed as an arg on init."
+    URI_FOUND_IN_ARGS = (
+        "'Uri' should not be passed as an arg on init."
+    )
 
 
 class BaseConnectionString(BaseModel):
@@ -21,14 +27,14 @@ class BaseConnectionString(BaseModel):
     password: str
     host: str
     port: Union[int, str] = Field(coerce_numbers_to_str=True)
-    uri: Optional[Union[PostgresDsn, Url, AmqpDsn, MultiHostUrl]] = Field(
-        default=None, validate_default=False
-    )
+    uri: Optional[
+        Union[PostgresDsn, Url, AmqpDsn, MultiHostUrl]
+    ] = Field(default=None, validate_default=False)
 
-    @computed_field(return_type=str)
-    @property
-    def dns(self):
-        return str(self.uri)
+    # @computed_field(return_type=str)
+    # @property
+    # def dns(self):
+    #     return str(self.uri)
 
     @model_validator(mode="before")
     @classmethod
@@ -70,7 +76,10 @@ class EventStoreDBConnectionString(BaseConnectionString):
             )
         else:
             self.uri = Url.build(
-                scheme="esdb", host=self.host, port=int(self.port), query="tls=false"
+                scheme="esdb",
+                host=self.host,
+                port=int(self.port),
+                query="tls=false",
             )
         return self
 
