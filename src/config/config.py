@@ -19,7 +19,7 @@ with open(CONFIG_FILE_PATH, "r") as file:
         rabbitmq=uris.get("uri_rabbit_mq"),
     )
     CONFIG_DICT["connections"] = connections
-    print(pformat(CONFIG_DICT))
+    # print(pformat(CONFIG_DICT))
 
 
 def get_module_path(file: str):

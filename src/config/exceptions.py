@@ -1,5 +1,7 @@
 from enum import Enum
 
+# TODO: remove and rewrite EmptyValueError messages
+
 
 class EmptyValueErrorMessages(str, Enum):
     STREAMS = "Empty value found in ports: "

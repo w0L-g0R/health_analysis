@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from src.config.validation import FieldValidator
+from src.config.field_validator import FieldValidator
 
 
 class TaskInsert(ABC, FieldValidator):

@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 
 
-class EventClient(ABC):
-
-    @property
-    @abstractmethod
-    def subscription(self) -> None:
-        pass
+# class EventClient(ABC):
+#
+#     @property
+#     @abstractmethod
+#     def subscription(self) -> None:
+#         pass
