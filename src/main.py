@@ -124,19 +124,28 @@ logger = logging.getLogger(__name__)
 async def bootstrap():
     meals_container = MealsContainer()
     meals_container.config.from_dict(CONFIG_DICT)
-    connection = await meals_container.connection()
-    print("awaited connection: ", connection)
-    repository = await meals_container.repository()
-    print("repository: ", repository._connection)
-    connection = await meals_container.connection.shutdown()
-    print("awaited closed connection: ", connection)
+    await meals_container.init_resources()
+    # connection = await meals_container.connection()
+    # print("awaited connection: ", connection)
+    # repository = await meals_container.repository()
+    # print("repository: ", repository._connection)
+    # connection = await meals_container.connection.shutdown()
+    # print("awaited closed connection: ", connection)
     # connection = await meals_container.connection.init()
     #
+    # connection = await meals_container.connection()
     # print("awaited init connection: ", connection)
     #
     # connection = await meals_container.connection.shutdown()
     # print("awaited shutdown: ", connection)
+    #
+    # # client = meals_container.event_client()
+    # # print("awaited init connection: ", client)
+    # #
+    # client = meals_container.event_client.shutdown()
+    # print("awaited shutdown: ", client)
 
+    await meals_container.shutdown_resources()
     # meals_container.init_resources()
     # meals_container.wire(modules=[__name__, MealsEventsHandler])
 

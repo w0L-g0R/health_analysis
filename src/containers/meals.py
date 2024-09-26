@@ -15,6 +15,7 @@ from src.adapters.spi.messages.taskiq.broker import TaskiqBroker
 from src.adapters.spi.persistence.time_scale_db.connection import TimeScaleDbConnection
 from src.adapters.spi.persistence.time_scale_db.queries.meals import MealDeleteQuery
 from src.adapters.spi.persistence.time_scale_db.repository import TimeScaleDbRepository
+from src.containers.wrapper import EventStoreDbClientWrapper
 from src.domain.events.meals.delete import MealDeleteEvent
 from src.domain.events.meals.insert import MealInsertEvent
 from src.domain.models.meals.delete import MealDeleteModel
@@ -28,7 +29,7 @@ class MealsContainer(DeclarativeContainer):
 
     connection = Resource(
         TimeScaleDbConnection,
-        connection_string=config.connections.timescaledb,  # .connections.timescaledb.uri,
+        connection_string=config.connections.timescaledb,
         database=config.databases.meals,
     )
 
@@ -37,12 +38,12 @@ class MealsContainer(DeclarativeContainer):
         connection=connection,
     )
 
-    # event_client = Resource(
-    #     EventStoreDbClient,
-    #     uri=config.credentials.eventstoredb.uri,
-    #     stream_name=config.subscriptions.meals.stream,
-    #     subscribe_from_end=config.subscriptions.meals.from_end,
-    # )
+    event_client = Resource(
+        EventStoreDbClientWrapper,
+        uri=config.connections.eventstoredb,
+        stream_name=config.subscriptions.meals.stream,
+        subscribe_from_end=config.subscriptions.meals.from_end,
+    )
     #
     # event_subscription = Resource(EventSubscription)
     #
