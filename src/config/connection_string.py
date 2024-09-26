@@ -1,5 +1,4 @@
-from enum import Enum
-from typing import Any, List, Optional, Self, Tuple, Union
+from typing import Any, List, Optional, Self, Tuple, Union, LiteralString
 
 from pydantic import (
     AmqpDsn,
@@ -16,9 +15,10 @@ from pydantic_core import (
 )
 
 
-class ConnectionStringError(str, Enum):
-    URI_FOUND_IN_ARGS = (
-        "'Uri' should not be passed as an arg on init."
+class UriPassedToInitError:
+    error_type: LiteralString = "uri_passed_to_args_on_init"
+    message: LiteralString = (
+        "'Uri' gets resolved from other args and should not be passed directly on init."
     )
 
 
@@ -27,22 +27,16 @@ class BaseConnectionString(BaseModel):
     password: str
     host: str
     port: Union[int, str] = Field(coerce_numbers_to_str=True)
-    uri: Optional[
-        Union[PostgresDsn, Url, AmqpDsn, MultiHostUrl]
-    ] = Field(default=None, validate_default=False)
-
-    # @computed_field(return_type=str)
-    # @property
-    # def dns(self):
-    #     return str(self.uri)
+    uri: Optional[Union[PostgresDsn, Url, AmqpDsn, MultiHostUrl]] = Field(
+        default=None, validate_default=False
+    )
 
     @model_validator(mode="before")
     @classmethod
     def check_uri_omitted(cls, data: Any) -> Any:
         if isinstance(data, dict) and "uri" in data:
             raise PydanticCustomError(
-                ConnectionStringError.URI_FOUND_IN_ARGS,
-                ConnectionStringError.URI_FOUND_IN_ARGS.value,
+                UriPassedToInitError.error_type, UriPassedToInitError.message
             )
         return data
 

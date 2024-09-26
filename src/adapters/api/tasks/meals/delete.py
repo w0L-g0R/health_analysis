@@ -1,13 +1,19 @@
-from src.application.domain.meals.models.delete.event import MealDeleteEvent
-from src.application.domain.meals.models.delete.model import MealDeleteModel
-from src.application.domain.meals.models.delete.query import MealDeleteQuery
+from typing import Callable
+from uuid import UUID, uuid4
+
+from pydantic import BaseModel
+
+from src.adapters.spi.persistence.time_scale_db.queries.meals import MealDeleteQuery
+from src.domain.events.meals.delete import MealDeleteEvent
+from src.domain.models.meals.delete import MealDeleteModel
+from src.domain.models.meals.insert import MealInsertModel
 from src.ports.spi.persistence.repository import Repository
 from src.ports.api.tasks.meals.delete import TaskDelete
 
 
-class MealDeleteTask(TaskDelete):
+class MealDeleteTask(BaseModel, TaskDelete):
     repository: Repository
-    model: MealDeleteModel
+    model: Callable[[uuid4, uuid4], MealInsertModel]
     event: MealDeleteEvent
     query: MealDeleteQuery
 

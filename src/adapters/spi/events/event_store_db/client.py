@@ -11,7 +11,7 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 
-class EventStoreDbClient(EventStoreDBClient, EventClient):
+class EventStoreDbClient(EventStoreDBClient, EventClient, BaseModel):
     uri: str
     stream_name: str
     subscribe_from_end: bool
@@ -19,7 +19,7 @@ class EventStoreDbClient(EventStoreDBClient, EventClient):
     def __init__(
         self,
     ):
-        super().__init__(self.uri__str__)
+        super().__init__(str(self.uri))
 
     @property
     def subscription(self) -> Optional[AbstractCatchupSubscription]:
