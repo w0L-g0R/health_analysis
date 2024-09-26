@@ -1,9 +1,7 @@
 from abc import ABC, abstractmethod
 
-from pydantic import BaseModel
 
-
-class EventSubscription(ABC, BaseModel):
+class EventSubscription(ABC):
     @abstractmethod
     def shutdown(self):
         pass

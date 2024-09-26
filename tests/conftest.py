@@ -2,7 +2,6 @@ import logging
 
 import pytest
 
-
 # @pytest.hookimpl(trylast=True)
 # def pytest_configure(config):
 #     logging_plugin = config.pluginmanager.get_plugin("logging-plugin")

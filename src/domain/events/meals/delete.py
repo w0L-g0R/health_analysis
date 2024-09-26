@@ -1,10 +1,11 @@
-from enum import Enum
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from src.config.validation import FieldValidator
 
 
-class MealDeleteEvent(BaseModel):
+class MealDeleteEvent(FieldValidator):
     meal_id: UUID = Field(default_factory=uuid4)
     user_id: UUID = Field(default_factory=uuid4)
 

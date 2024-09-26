@@ -1,9 +1,10 @@
-from typing import Callable, Dict, Optional
-from pydantic import PostgresDsn, ValidationError
+from pprint import pformat
+
+from pydantic import BaseModel, ConfigDict, PostgresDsn, ValidationError
 from pydantic_core import Url
 import pytest
-from src.config.connection_string import (
-    BaseConnectionString,
+
+from src.config.connection_strings import (
     ConnectionStringTimescaleDb,
     EventStoreDBConnectionString,
     RabbitMQConnectionString,
@@ -13,7 +14,10 @@ from src.config.exceptions import (
     EmptyValueErrorMessages,
     InvalidConfigurationError,
 )
-from pprint import pformat
+
+
+class FieldValidator(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 @pytest.mark.validation
@@ -21,7 +25,7 @@ def validate_config(config: dict) -> dict[str, PostgresDsn | Url | None]:
     try:
         match config:
             case {
-                "dns": {
+                "credentials": {
                     "timescaledb": timescaledb_config,
                     "eventstoredb": eventstoredb_config,
                     "rabbitmq": rabbitmq_config,
@@ -83,8 +87,6 @@ def validate_config(config: dict) -> dict[str, PostgresDsn | Url | None]:
             "uri_event_store_db": connection_event_store_db.uri,
             "uri_rabbit_mq": connection_rabbit_mq.uri,
         }
-        
+
     except ValidationError as e:
-        raise InvalidConfigurationError(
-            f"PydanticCustomError: {e}"
-        )
+        raise InvalidConfigurationError(f"PydanticCustomError: {e}")

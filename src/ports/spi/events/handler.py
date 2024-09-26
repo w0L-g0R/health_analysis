@@ -5,5 +5,5 @@ from src.ports.spi.events.subscription import EventSubscription
 
 class EventsHandler(ABC):
     @abstractmethod
-    async def handle_events(self, subscription: EventSubscription):
+    async def handle(self, subscription: EventSubscription):
         pass

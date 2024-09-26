@@ -1,11 +1,9 @@
 import logging
 
-from dependency_injector.wiring import (
-    Closing, inject, Provide
-)
-from pydantic import BaseModel
+from dependency_injector.wiring import Closing, Provide, inject
 
 from src.config.config import setup_logging
+from src.config.validation import FieldValidator
 from src.handler.exceptions import handle_exceptions
 from src.ports.api.tasks.meals.delete import TaskDelete
 from src.ports.api.tasks.meals.insert import TaskInsert
@@ -16,7 +14,7 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 
-class MealsEventsHandler(BaseModel, EventsHandler):
+class MealsEventsHandler(EventsHandler, FieldValidator):
     meal_insert_task: TaskInsert
     meal_delete_task: TaskDelete
     meal_insert_event_type_name: str
@@ -24,7 +22,9 @@ class MealsEventsHandler(BaseModel, EventsHandler):
 
     @handle_exceptions
     @inject
-    async def handle_events(self, subscription: EventSubscription = Closing[Provide["event_subscription"]]):
+    async def handle(
+        self, subscription: EventSubscription = Closing[Provide["event_subscription"]]
+    ):
         while True:
             for event in subscription:
 

@@ -45,17 +45,15 @@
 
 # setup_logging()
 import asyncio
+from asyncio import gather
 import logging
 
-from src.application.handlers.meals_events_handler import MealsEventsHandler
-from src.brokers import meals_broker
-from src.containers.meals import MealsContainer
-from src.config.config import CONFIG_DICT, setup_logging
 from dependency_injector.wiring import Provide, inject
 
-from asyncio import gather
-
-from src.services.meals_service import MealsService
+from src.brokers.meals import meals_broker
+from src.config.config import CONFIG_DICT, setup_logging
+from src.containers.meals import MealsContainer
+from src.handler.meals import MealsEventsHandler
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -63,24 +61,24 @@ logger = logging.getLogger(__name__)
 
 @inject
 async def main(
-    meal_service: MealsService = Provide[MealsContainer.service],
+    meals_handler: MealsEventsHandler = Provide[MealsContainer.event_handler],
 ):
     # Start brokers
     for broker in [meals_broker]:
         await broker.startup()
         logger.info(f"\nStarting {broker.__repr__()}")
 
-    #
-
     try:
-        await gather(meal_service.handle_events())
+        await gather(meals_handler.handle())
 
     except Exception as e:
         logging.error(f"Error on handle_events: {e}")
 
     finally:
         # meal_events_client.close()
-        await meals_broker.close()
+        for broker in [meals_broker]:
+            await broker.close()
+            logger.info(f"\nClosing {broker.__repr__()}")
         # STOP_EVENT.set()
 
     #     logging.info(f"Stopped asyncio event {id(STOP_EVENT)}: {STOP_EVENT.is_set()}")

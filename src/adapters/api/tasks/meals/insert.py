@@ -1,5 +1,4 @@
 from typing import Callable
-from uuid import UUID
 
 from src.adapters.spi.persistence.time_scale_db.queries.meals import MealInsertQuery
 from src.domain.events.meals.insert import MealInsertEvent
@@ -11,8 +10,7 @@ from src.ports.spi.persistence.repository import Repository
 class MealInsertTask(TaskInsert):
     repository: Repository
     model: Callable[..., MealInsertModel]
-    event: MealInsertEvent
-    query: MealInsertQuery
+    event: Callable[..., MealInsertEvent]
 
     async def insert(self, incoming_event_data: bytes):
         decoded_event = incoming_event_data.decode("utf-8")
@@ -26,6 +24,6 @@ class MealInsertTask(TaskInsert):
             meal_name=validated_event.meal_name,
         )
 
-        query_args = entity.model_dump.values()
+        query_args = entity.model_dump().values()
 
         await self.repository.insert(tuple(query_args))

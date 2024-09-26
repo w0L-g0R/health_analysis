@@ -1,12 +1,13 @@
 import logging
-from pprint import pp
-from pydantic_core import MultiHostUrl, PydanticCustomError
-import pytest
+
 from pydantic import ValidationError
-from src.config.connection_string import (
-    ConnectionStringError,
+from pydantic_core import MultiHostUrl
+import pytest
+
+from src.config.connection_strings import (
     ConnectionStringTimescaleDb,
     EventStoreDBConnectionString,
+    UriPassedToInitError,
 )
 
 log = logging.getLogger(__name__)
@@ -104,11 +105,5 @@ class TestConnectionString:
             )
 
         # ASSERT
-        assert (
-            exc_info.value.errors()[0]["msg"]
-            == ConnectionStringError.URI_FOUND_IN_ARGS.value
-        )
-        assert (
-            exc_info.value.errors()[0]["type"]
-            == ConnectionStringError.URI_FOUND_IN_ARGS
-        )
+        assert exc_info.value.errors()[0]["msg"] == UriPassedToInitError.message
+        assert exc_info.value.errors()[0]["type"] == UriPassedToInitError.error_type

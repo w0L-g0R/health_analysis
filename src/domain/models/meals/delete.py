@@ -1,7 +1,9 @@
 from uuid import UUID
-from pydantic import BaseModel
 
-class MealDeleteModel(BaseModel):
+from src.config.validation import FieldValidator
+
+
+class MealDeleteModel(FieldValidator):
     meal_id: UUID
     user_id: UUID
 

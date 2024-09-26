@@ -1,38 +1,50 @@
 import logging
 from typing import Callable, Dict
 
-from pydantic import BaseModel
+from pydantic import AmqpDsn, BaseModel
+from pydantic_core import Url
 from taskiq_aio_pika import AioPikaBroker
 
 from src.config.config import setup_logging
+from src.config.validation import FieldValidator
 from src.ports.spi.messages.broker import MessageBroker
 
 setup_logging()
 logger = logging.getLogger(__name__)
 
 
-class TaskiqBroker(AioPikaBroker, MessageBroker):
+class TaskiqBroker(
+    FieldValidator,
+    AioPikaBroker,
+    MessageBroker,
+):
     url: str
     name: str
     exchange_name: str
     queue_name: str
+    tasks: Dict[str, Callable]
 
-    def connect(self):
-        super().__init__(
-            url=self.url,
-            exchange_name=self.exchange_name,
-            queue_name=self.queue_name,
-            declare_exchange=True,
-            declare_queues=True,
-        )
-        return self
+    def __init__(self, **data):
+        print(data)
+        pass
+        # super().__init__(
+        #     **data,
+        #     declare_exchange=True,
+        #     declare_queues=True,
+        # )
 
-    def register_tasks(self, tasks: Dict[str, Callable]):
+    def register_tasks(self):
         for name, func in self.tasks.items():
             self.register_task(
                 name=name,
                 func=func,
             )
+
+    async def startup(self) -> None:
+        pass
+
+    async def shutdown(self) -> None:
+        pass
 
     def __repr__(self):
         return f"""Broker:

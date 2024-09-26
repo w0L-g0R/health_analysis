@@ -1,9 +1,10 @@
 from copy import deepcopy
 import logging
 from pathlib import Path
-from pydantic import ValidationError
+
 import pytest
 from toml import load
+
 from src.config.exceptions import (
     EmptyValueError,
     EmptyValueErrorMessages,

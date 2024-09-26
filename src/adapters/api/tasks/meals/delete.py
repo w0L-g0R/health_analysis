@@ -1,21 +1,19 @@
 from typing import Callable
-from uuid import UUID, uuid4
 
-from pydantic import BaseModel
 
 from src.adapters.spi.persistence.time_scale_db.queries.meals import MealDeleteQuery
+from src.config.validation import FieldValidator
 from src.domain.events.meals.delete import MealDeleteEvent
-from src.domain.models.meals.delete import MealDeleteModel
 from src.domain.models.meals.insert import MealInsertModel
-from src.ports.spi.persistence.repository import Repository
 from src.ports.api.tasks.meals.delete import TaskDelete
+from src.ports.spi.persistence.repository import Repository
 
 
-class MealDeleteTask(BaseModel, TaskDelete):
+class MealDeleteTask(TaskDelete, FieldValidator):
+
     repository: Repository
-    model: Callable[[uuid4, uuid4], MealInsertModel]
-    event: MealDeleteEvent
-    query: MealDeleteQuery
+    model: Callable[..., MealInsertModel]
+    event: Callable[..., MealDeleteEvent]
 
     async def delete(self, incoming_event_data: bytes):
         decoded_event = incoming_event_data.decode("utf-8")
@@ -27,6 +25,6 @@ class MealDeleteTask(BaseModel, TaskDelete):
             user_id=validated_event.user_id,
         )
 
-        query_args = entity.model_dump.values()
+        query_args = entity.model_dump().values()
 
         await self.repository.delete(tuple(query_args))

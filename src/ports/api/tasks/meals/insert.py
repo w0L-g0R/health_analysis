@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 
-from pydantic import BaseModel
+from src.config.validation import FieldValidator
 
 
-class TaskInsert(ABC, BaseModel):
+class TaskInsert(ABC, FieldValidator):
     @abstractmethod
     async def insert(self, incoming_event_data: bytes):
         pass

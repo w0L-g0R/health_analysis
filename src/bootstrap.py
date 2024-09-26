@@ -1,6 +1,6 @@
+import logging
 import subprocess
 import sys
-import logging
 
 from src.config.config import setup_logging
 

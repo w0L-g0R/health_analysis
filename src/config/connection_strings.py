@@ -1,18 +1,13 @@
-from typing import Any, List, Optional, Self, Tuple, Union, LiteralString
+from typing import Any, LiteralString, Optional, Self, Union
 
 from pydantic import (
     AmqpDsn,
     BaseModel,
     Field,
     PostgresDsn,
-    computed_field,
     model_validator,
 )
-from pydantic_core import (
-    MultiHostUrl,
-    PydanticCustomError,
-    Url,
-)
+from pydantic_core import MultiHostUrl, PydanticCustomError, Url
 
 
 class UriPassedToInitError:
@@ -27,9 +22,7 @@ class BaseConnectionString(BaseModel):
     password: str
     host: str
     port: Union[int, str] = Field(coerce_numbers_to_str=True)
-    uri: Optional[Union[PostgresDsn, Url, AmqpDsn, MultiHostUrl]] = Field(
-        default=None, validate_default=False
-    )
+    uri: Optional[str] = Field(default=None, validate_default=False)
 
     @model_validator(mode="before")
     @classmethod
@@ -44,23 +37,25 @@ class BaseConnectionString(BaseModel):
 class ConnectionStringTimescaleDb(BaseConnectionString):
     @model_validator(mode="after")
     def create_uri(self) -> Self:
-        self.uri = MultiHostUrl.build(
-            scheme="postgres",
-            username=self.user,
-            password=self.password,
-            host=self.host,
-            port=int(self.port),
+        self.uri = str(
+            MultiHostUrl.build(
+                scheme="postgres",
+                username=self.user,
+                password=self.password,
+                host=self.host,
+                port=int(self.port),
+            )
         )
         return self
 
 
-class EventStoreDBConnectionString(BaseConnectionString):
+class EventStoreDBConnectionString(BaseConnectionString, BaseModel):
     tls: bool
 
     @model_validator(mode="after")
     def create_uri(self) -> Self:
         if self.tls:
-            self.uri = Url.build(
+            uri = Url.build(
                 scheme="esdb",
                 username=self.user,
                 password=self.password,
@@ -69,23 +64,27 @@ class EventStoreDBConnectionString(BaseConnectionString):
                 query="tls=true",
             )
         else:
-            self.uri = Url.build(
+            uri = Url.build(
                 scheme="esdb",
                 host=self.host,
                 port=int(self.port),
                 query="tls=false",
             )
+
+        self.uri = str(uri)
         return self
 
 
 class RabbitMQConnectionString(BaseConnectionString):
     @model_validator(mode="after")
     def create_uri(self) -> Self:
-        self.uri = Url.build(
-            scheme="amqp",
-            username=self.user,
-            password=self.password,
-            host=self.host,
-            port=int(self.port),
+        self.uri = str(
+            Url.build(
+                scheme="amqp",
+                username=self.user,
+                password=self.password,
+                host=self.host,
+                port=int(self.port),
+            )
         )
         return self

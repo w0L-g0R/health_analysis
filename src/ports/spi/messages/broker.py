@@ -1,16 +1,14 @@
 from abc import ABC, abstractmethod
 from typing import Callable, Dict
 
-from pydantic import BaseModel
 
-
-class MessageBroker(ABC, BaseModel):
+class MessageBroker(ABC):
     @abstractmethod
     def __init__(self) -> None:
         super().__init__()
 
     @abstractmethod
-    def register_tasks(self, tasks: Dict[str, Callable]) -> None:
+    def register_tasks(self) -> None:
         pass
 
     @abstractmethod
@@ -19,8 +17,4 @@ class MessageBroker(ABC, BaseModel):
 
     @abstractmethod
     async def shutdown(self) -> None:
-        pass
-
-    @abstractmethod
-    def __repr__(self) -> str:
         pass
