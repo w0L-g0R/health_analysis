@@ -11,6 +11,7 @@ class MealInsertTask(TaskInsert):
     repository: Repository
     model: Callable[..., MealInsertModel]
     event: Callable[..., MealInsertEvent]
+    query: MealInsertQuery
 
     async def insert(self, incoming_event_data: bytes):
         decoded_event = incoming_event_data.decode("utf-8")

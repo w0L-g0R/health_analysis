@@ -50,7 +50,7 @@ import logging
 
 from dependency_injector.wiring import Provide, inject
 
-from src.brokers.meals import meals_broker
+# from src.brokers.meals import meals_broker
 from src.config.config import CONFIG_DICT, setup_logging
 from src.containers.meals import MealsContainer
 from src.handler.meals import MealsEventsHandler
@@ -59,73 +59,91 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 
-@inject
-async def main(
-    meals_handler: MealsEventsHandler = Provide[MealsContainer.event_handler],
-):
-    # Start brokers
-    for broker in [meals_broker]:
-        await broker.startup()
-        logger.info(f"\nStarting {broker.__repr__()}")
+# @inject
+# async def main(
+#     meals_handler: MealsEventsHandler = Provide[MealsContainer.event_handler],
+# ):
+# Start brokers
+# for broker in [meals_broker]:
+#     await broker.startup()
+#     logger.info(f"\nStarting {broker.__repr__()}")
+#
+# try:
+#     await gather(meals_handler.handle())
+#
+# except Exception as e:
+#     logging.error(f"Error on handle_events: {e}")
+#
+# finally:
+#     # meal_events_client.close()
+#     for broker in [meals_broker]:
+#         await broker.close()
+#         logger.info(f"\nClosing {broker.__repr__()}")
+# STOP_EVENT.set()
 
-    try:
-        await gather(meals_handler.handle())
+#     logging.info(f"Stopped asyncio event {id(STOP_EVENT)}: {STOP_EVENT.is_set()}")
+#     await asyncio.sleep(0.25)
 
-    except Exception as e:
-        logging.error(f"Error on handle_events: {e}")
+#     client.close()
 
-    finally:
-        # meal_events_client.close()
-        for broker in [meals_broker]:
-            await broker.close()
-            logger.info(f"\nClosing {broker.__repr__()}")
-        # STOP_EVENT.set()
+# logging.info(f"Closed event bus client {id(client)}: {client._is_closed}")
 
-    #     logging.info(f"Stopped asyncio event {id(STOP_EVENT)}: {STOP_EVENT.is_set()}")
-    #     await asyncio.sleep(0.25)
+# shutdown()
 
-    #     client.close()
+# tasks = meals_broker.get_all_tasks()
+# print("MealTasks.INSERT.value: ", MealTasks.INSERT.value)
+# print("tasks: ", tasks)
 
-    # logging.info(f"Closed event bus client {id(client)}: {client._is_closed}")
+# task = meals_broker.find_task(task_name=MealTasks.INSERT.value)
+# print("task: ", task)
 
-    # shutdown()
+# event_insert_meal = InsertMealEvent(
+#     user_id=uuid4(),
+#     meal_name="test_meal",
+#     calories=float("{:.2f}".format(abs(random()))),
+# )
 
-    # tasks = meals_broker.get_all_tasks()
-    # print("MealTasks.INSERT.value: ", MealTasks.INSERT.value)
-    # print("tasks: ", tasks)
+# if task:
+#     _task = await task.kiq(event_insert_meal)
+#     # _task2 = await task.kiq("event2")
+#     res = await _task.wait_result()
+#     # res2 = await _task2.wait_result()
+#     print("res: ", res)
+#     # print("res2: ", res2)
 
-    # task = meals_broker.find_task(task_name=MealTasks.INSERT.value)
-    # print("task: ", task)
+# print("get_client_task: ", get_client_task)
 
-    # event_insert_meal = InsertMealEvent(
-    #     user_id=uuid4(),
-    #     meal_name="test_meal",
-    #     calories=float("{:.2f}".format(abs(random()))),
-    # )
+# get_res = await get_client_task.wait_result()
 
-    # if task:
-    #     _task = await task.kiq(event_insert_meal)
-    #     # _task2 = await task.kiq("event2")
-    #     res = await _task.wait_result()
-    #     # res2 = await _task2.wait_result()
-    #     print("res: ", res)
-    #     # print("res2: ", res2)
+# print(f"Got client value: {get_res.is_err}")
 
-    # print("get_client_task: ", get_client_task)
+# await meals_broker.shutdown()
+# pass
 
-    # get_res = await get_client_task.wait_result()
 
-    # print(f"Got client value: {get_res.is_err}")
+async def bootstrap():
+    meals_container = MealsContainer()
+    meals_container.config.from_dict(CONFIG_DICT)
+    connection = await meals_container.connection()
+    print("awaited connection: ", connection)
+    repository = await meals_container.repository()
+    print("repository: ", repository._connection)
+    connection = await meals_container.connection.shutdown()
+    print("awaited closed connection: ", connection)
+    # connection = await meals_container.connection.init()
+    #
+    # print("awaited init connection: ", connection)
+    #
+    # connection = await meals_container.connection.shutdown()
+    # print("awaited shutdown: ", connection)
 
-    # await meals_broker.shutdown()
+    # meals_container.init_resources()
+    # meals_container.wire(modules=[__name__, MealsEventsHandler])
 
 
 if __name__ == "__main__":
-    meals_container = MealsContainer()
-    meals_container.config.from_dict(CONFIG_DICT)
-    meals_container.init_resources()
-    meals_container.wire(modules=[__name__, MealsEventsHandler])
-    asyncio.run(main())
+    asyncio.run(bootstrap())
+    # asyncio.run(main())
 
 
 # @inject

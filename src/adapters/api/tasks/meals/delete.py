@@ -14,6 +14,7 @@ class MealDeleteTask(TaskDelete, FieldValidator):
     repository: Repository
     model: Callable[..., MealInsertModel]
     event: Callable[..., MealDeleteEvent]
+    query: MealDeleteQuery
 
     async def delete(self, incoming_event_data: bytes):
         decoded_event = incoming_event_data.decode("utf-8")
