@@ -1,12 +1,12 @@
-from dataclasses import dataclass
-from enum import Enum
+class MealInsertQuery:
+    def __call__(self):
+        return """
+        INSERT INTO meals (time, meal_id, user_id, meal_name, calories) VALUES ($1, $2, $3, $4, $5)
+        """
 
-from pydantic import BaseModel
 
-
-class MealsQueries(BaseModel):
-    INSERT: str = (
-        """INSERT INTO meals (time, meal_id, user_id, meal_name, calories) VALUES ($1, $2, $3, $4, $5)"""
-    )
-
-    DELETE: str = """DELETE FROM meals WHERE meal_id = $1 AND user_id = $2"""
+class MealDeleteQuery:
+    def __call__(self):
+        return """
+        DELETE FROM meals WHERE meal_id = $1 AND user_id = $2
+        """

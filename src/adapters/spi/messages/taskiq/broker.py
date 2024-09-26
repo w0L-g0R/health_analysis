@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 class TaskiqBroker(AioPikaBroker, MessageBroker):
     url: str
     name: str
-    tasks: Dict[str, Callable]
     exchange_name: str
     queue_name: str
 
@@ -26,7 +25,6 @@ class TaskiqBroker(AioPikaBroker, MessageBroker):
             declare_exchange=True,
             declare_queues=True,
         )
-
         return self
 
     def register_tasks(self, tasks: Dict[str, Callable]):
