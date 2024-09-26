@@ -27,7 +27,7 @@ class EventStoreDbClient(FieldValidator, EventStoreDBClient, EventClient, Resour
         super().__init__(
             uri=uri,
         )
-        print("is created")
+        print("EventStoreDbClient is created")
         self._stream_name = stream_name
         self._subscribe_from_end = subscribe_from_end
 
@@ -44,5 +44,5 @@ class EventStoreDbClient(FieldValidator, EventStoreDBClient, EventClient, Resour
     def shutdown(self) -> None:
         self.close()
         self._is_closed = True
-        print("is_closed: ", self._is_closed)
+        print("EventStoreDbClient is_closed: ", self._is_closed)
         logger.info(f"Closed event bus client {id(self)}: {self._is_closed}")

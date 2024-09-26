@@ -15,4 +15,4 @@ class EventStoreDbClientWrapper(resources.Resource):
         )
 
     def shutdown(self, resource: EventStoreDbClient) -> None:
-        resource.shutdown()
+        resource.close()
