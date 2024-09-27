@@ -1,22 +1,26 @@
+from asyncpg import Pool
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import (
     Callable,
     Configuration,
+    Dependency,
     Factory,
     Object,
     Resource,
+    Singleton,
 )
+from esdbclient import CatchupSubscription
 
-from src.tasks.meals.add_meal_task import MealInsertQuery, AddMealTask
+from src.domain.models.meals.meal_model import Meal
+from src.ports.api.use_cases.meals.add_meal.add_meal import AddMealDto
+from src.tasks.meals.add_meal_task import AddMealTask
 
 # from src.adapters.spi.events.event_store_db.subscription import EventStoreDbSubscription
 from src.adapters.spi.persistence.meals.meals_repository import MealsRepository
-from src.containers.utils.resource_management import (
+from src.containers.resource_management import (
     init_and_shutdown_event_client,
     init_and_shutdown_time_scale_db_connection,
 )
-from src.domain.events.meals.insert import AddMealDto
-from src.domain.models.meals.insert import MealInsertModel
 
 
 class MealsContainer(DeclarativeContainer):
@@ -27,30 +31,24 @@ class MealsContainer(DeclarativeContainer):
         uri=config.connections.eventstoredb,
     )
     #
-    event_subscription = Resource(
-        event_client.provided.subscribe_to_stream,
-        stream_name=config.subscriptions.meals.stream,
-        subscribe_from_end=config.subscriptions.meals.from_end,
+    event_subscription = Dependency(
+        CatchupSubscription,
     )
 
-    connection = Resource(
-        init_and_shutdown_time_scale_db_connection,
-        connection_string=config.connections.timescaledb,
-        database=config.databases.meals,
-    )
+    connection_pool = Dependency(Pool)
 
-    repository = Resource(
+    repository = Singleton(
         MealsRepository,
-        connection=connection,
+        _connection_pool=connection_pool,
     )
 
-    task_insert = Factory(
+    add_meal_task = Factory(
         AddMealTask,
-        repository=repository.provided,
-        event=Callable[AddMealDto],
-        model=Callable[MealInsertModel],
-        query=Object(MealInsertQuery),
+        _repository=repository.provided,
+        _dto=Callable[AddMealDto],
+        _model=Callable[Meal],
     )
+
     #
     # task_delete = Factory(
     #     MealDeleteTask,

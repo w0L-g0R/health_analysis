@@ -14,7 +14,7 @@ from src.ports.spi.persistence.create_meal_port import CreateMealPort
 
 class MealsRepository(FieldValidator, CreateMealPort, RemoveMealUseCase):
 
-    _connection: Connection = PrivateAttr()
+    _connection_pool: Connection = PrivateAttr()
 
     @handle_query_error
     async def create_meal(self, *args) -> None:
@@ -23,7 +23,7 @@ class MealsRepository(FieldValidator, CreateMealPort, RemoveMealUseCase):
                 INSERT INTO meals (time, meal_id, user_id, meal_name, calories) VALUES ($1, $2, $3, $4, $5)
          """
 
-        await self._connection.execute(
+        await self._dsn.execute(
             query=query,
             *args,
         )
@@ -38,7 +38,7 @@ class MealsRepository(FieldValidator, CreateMealPort, RemoveMealUseCase):
             DELETE FROM meals WHERE meal_id = $1 AND user_id = $2
         """
 
-        await self._connection.execute(
+        await self._dsn.execute(
             query=query,
             *args,
         )

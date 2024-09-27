@@ -1,7 +1,7 @@
 import logging
 
 from src.config.config import CONFIG_DICT, setup_logging
-from src.containers.workers.meals import MealsContainer
+from src.containers.meals_container import MealsContainer
 
 setup_logging()
 logger = logging.getLogger(__name__)
