@@ -5,7 +5,7 @@ from src.adapters.spi.persistence.time_scale_db.queries.meals import MealDeleteQ
 from src.config.field_validator import FieldValidator
 from src.domain.events.meals.delete import MealDeleteEvent
 from src.domain.models.meals.insert import MealInsertModel
-from src.ports.api.tasks.meals.delete import TaskDelete
+from src.ports.spi.tasks.meals.delete import TaskDelete
 from src.ports.spi.persistence.repository import Repository
 
 

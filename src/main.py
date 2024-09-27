@@ -45,15 +45,11 @@
 
 # setup_logging()
 import asyncio
-from asyncio import gather
 import logging
-
-from dependency_injector.wiring import Provide, inject
 
 # from src.brokers.meals import meals_broker
 from src.config.config import CONFIG_DICT, setup_logging
-from src.containers.meals import MealsContainer
-from src.handler.meals import MealsEventsHandler
+from src.containers.domain.meals import MealsContainer
 
 setup_logging()
 logger = logging.getLogger(__name__)
