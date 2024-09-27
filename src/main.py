@@ -1,207 +1,170 @@
-# from esdbclient import CatchupSubscription
-# import asyncio
-
-
-# from src.config.config import CONFIG_DICT, setup_logging
-# from dependency_injector.wiring import Provide, inject
-
-# from src.dependencies.events_bus import EventBusContainer, MealEventBusContainer
-# from src.brokers.meals_broker import meals_broker
-
-
-# STOP_EVENT = asyncio.Event()
-
-
-# async def handle_subscription_events(
-#     subscription: CatchupSubscription,
-# ):
-#     while not STOP_EVENT.is_set():
-#         logging.info(f"Start listening to events of subscription {id(subscription)}")
-
-#         try:
-#             for event in subscription:
-#                 logging.info(
-#                     f"Received event from subscription {id(subscription)}:\n{pformat(event, indent=2)}"
-#                 )
-
-#                 match event.type:
-#                     case "MealInsert":
-#                         # await insert_event_handler.validate_and_serialize(event)
-#                         # insert_event_handler.process(event.data.decode("utf-8"))
-#                         # process_insert_meal_event.send(
-#                         #     event.data.decode("utf-8"),
-#                         # )
-#                         pass
-#                         # process(event.data.decode("utf-8"))
-#                     case _:
-#                         print("No matching type")
-
-#             # Prevent CPU overuse
-#             # await asyncio.sleep(0.1)
-
-#         except Exception as e:
-#             logging.error(f"Error in handle_events:{e}")
-#             raise e
-
-# setup_logging()
 import asyncio
-from asyncio import gather
-import logging
+from multiprocessing import Process
+from time import sleep as time_sleep
 
-from dependency_injector.wiring import Provide, inject
+from esdbclient.common import AbstractCatchupSubscription
+from taskiq_aio_pika import AioPikaBroker
 
-# from src.brokers.meals import meals_broker
-from src.config.config import CONFIG_DICT, setup_logging
-from src.containers.meals import MealsContainer
-from src.handler.meals import MealsEventsHandler
+from src.brokers.bootstrap import start_meals_broker
 
-setup_logging()
-logger = logging.getLogger(__name__)
+# from src.brokers.bootstrap import start_health_broker, start_meals_broker
+from src.brokers.meals_broker import meals_broker
+from src.config.config import CONFIG_DICT
+from src.containers.event_client_container import EventClientContainer
+from src.containers.meals_container import MealsContainer
+
+
+# test_meals_broker = AioPikaBroker(
+#     url="amqp://guest:guest@localhost:5672", queue_name="meals"
+# )
+
+
+# def start_test_meals_broker():
+#     worker_args = WorkerArgs(
+#         broker="src.main:test_meals_broker",
+#         modules=["src.main"],
+#     )
+#
+#     print("Meals broker is running")
+#     run_worker(worker_args)
 
 
 # @inject
-# async def main(
-#     meals_handler: MealsEventsHandler = Provide[MealsContainer.event_handler],
+# async def handle_meal_events(
+#     event_client_container: EventClientContainer = Provide[EventClientContainer],
+#     meals_container: MealsContainer = Provide[MealsContainer],
 # ):
-# Start brokers
-# for broker in [meals_broker]:
-#     await broker.startup()
-#     logger.info(f"\nStarting {broker.__repr__()}")
+#     await meals_broker.startup()
 #
-# try:
-#     await gather(meals_handler.handle())
+#     meals_subscription = event_client_container.meal_events_subscription()
+#     meals_event_handler = meals_container.meals_event_handler()
+#     meal_tasks = MealTasks(add_meal=meals_broker.find_task("add_meal_task"))
 #
-# except Exception as e:
-#     logging.error(f"Error on handle_events: {e}")
-#
-# finally:
-#     # meal_events_client.close()
-#     for broker in [meals_broker]:
-#         await broker.close()
-#         logger.info(f"\nClosing {broker.__repr__()}")
-# STOP_EVENT.set()
-
-#     logging.info(f"Stopped asyncio event {id(STOP_EVENT)}: {STOP_EVENT.is_set()}")
-#     await asyncio.sleep(0.25)
-
-#     client.close()
-
-# logging.info(f"Closed event bus client {id(client)}: {client._is_closed}")
-
-# shutdown()
-
-# tasks = meals_broker.get_all_tasks()
-# print("MealTasks.INSERT.value: ", MealTasks.INSERT.value)
-# print("tasks: ", tasks)
-
-# task = meals_broker.find_task(task_name=MealTasks.INSERT.value)
-# print("task: ", task)
-
-# event_insert_meal = InsertMealEvent(
-#     user_id=uuid4(),
-#     meal_name="test_meal",
-#     calories=float("{:.2f}".format(abs(random()))),
-# )
-
-# if task:
-#     _task = await task.kiq(event_insert_meal)
-#     # _task2 = await task.kiq("event2")
-#     res = await _task.wait_result()
-#     # res2 = await _task2.wait_result()
-#     print("res: ", res)
-#     # print("res2: ", res2)
-
-# print("get_client_task: ", get_client_task)
-
-# get_res = await get_client_task.wait_result()
-
-# print(f"Got client value: {get_res.is_err}")
-
-# await meals_broker.shutdown()
-# pass
+#     await meals_event_handler.handle_events(
+#         subscription=meals_subscription,
+#         add_meal_task=meal_tasks.add_meal,
+#     )
 
 
-async def bootstrap():
+async def main():
+
+    await meals_broker.startup()
+
     meals_container = MealsContainer()
     meals_container.config.from_dict(CONFIG_DICT)
     await meals_container.init_resources()
-    # connection = await meals_container.connection()
-    # print("awaited connection: ", connection)
-    # repository = await meals_container.repository()
-    # print("repository: ", repository._connection)
-    # connection = await meals_container.connection.shutdown()
-    # print("awaited closed connection: ", connection)
-    # connection = await meals_container.connection.init()
-    #
-    # connection = await meals_container.connection()
-    # print("awaited init connection: ", connection)
-    #
-    # connection = await meals_container.connection.shutdown()
-    # print("awaited shutdown: ", connection)
-    #
-    # # client = meals_container.event_client()
-    # # print("awaited init connection: ", client)
-    # #
-    # client = meals_container.event_client.shutdown()
-    # print("awaited shutdown: ", client)
 
-    await meals_container.shutdown_resources()
+    meals_tasks = await meals_container.meal_tasks()
+    meals_tasks.add_meal.set_task(meals_broker.find_task("add_meal_task"))
+
+    print("meals_broker main", meals_broker)
+    # meals_broker.register_task(lambda x: add_one, task_name="add_one")
+    # add_one_task = TaskiqTask()
+    # t.task = add_one
+
+    # t = await add_one_task.execute()
+    # r = await t.wait_result()
+    # print(r)
+    # print(t)
+
+    # meals_broker.register_task(t, task_name="add_one")
+    # meal_tasks = MealTasks(add_one=))
+
+    event_client_container = EventClientContainer()
+    event_client_container.config.from_dict(CONFIG_DICT)
+    event_client_container.init_resources()
+
+    subscription = event_client_container.meal_events_subscription()
+    meals_event_handler = event_client_container.meal_events_handler()
+    meals_events = event_client_container.meal_events()
+
+    print("subscription", subscription)
+
+    #
+    # meal_events_handler = meals_container.event_handler()
+    #
+    await asyncio.gather(
+        *[meals_event_handler.handle_events(tasks=meals_tasks, events=meals_events)]
+    )
+
+
+async def process_meal_events(
+    broker: AioPikaBroker,
+    subscription: AbstractCatchupSubscription,
+    meals_container: MealsContainer,
+):
+
+    # await meals_container.init_resources()
+    c = await meals_container.connection_pool.init()
+    print(c)
+    r = await meals_container.repository.init()
+    print(r)
+    # await c.add(
+    #     (
+    #         datetime.now(),
+    #         "faaf6aa2-7afb-4a95-8379-1febe41caf5c",
+    #         "faaf6aa2-7afb-4a95-8379-1febe41caf5cuser_id",
+    #         "meal_name",
+    #         12,
+    #     )
+    # )
+
+    # event_handler = meals_container.event_handler()
+
+    # add_one_task = broker.find_task("add_one")
+    #
+    # print("add_one_task", add_one_task)
+
+    # t = await dyn_task.kiq(x=1)
+    # t = await add_one_task.kiq()
+    # r = await t.wait_result()
+    # print(r)
+    # print(t)
+
+    # meals_subscription = event_client_container.meal_events_subscription()
     # meals_container.init_resources()
-    # meals_container.wire(modules=[__name__, MealsEventsHandler])
+    # print("event_handler", event_handler)
+
+    # meals_event_handler = meals_container.event_handler()
+    # meal_tasks = MealTasks(add_meal=meals_broker.find_task("add_meal_task"))
+
+    # print(meals_broker.state)
+    # print(meals_broker.read_conn)
+
+    # r = await t.wait_result()
+    # print(add_one_task)
+    # t = await add_one_task.kiq()
+    # r = await t.wait_result()
+
+    # await asyncio.gather(
+    #     *[
+    #         handle_meal_events(),
+    #     ]
+    # )
+
+    # await asyncio.sleep(2)
+    # #
 
 
 if __name__ == "__main__":
-    asyncio.run(bootstrap())
-    # asyncio.run(main())
+    # multiprocessing.log_to_stderr(logging.DEBUG)
 
+    # test_meal_worker_process = Process(target=start_test_meals_broker)
+    meal_worker_process = Process(target=start_meals_broker)
+    # health_worker_process = Process(target=start_health_broker)
+    #
+    # test_meal_worker_process.start()
+    meal_worker_process.start()
 
-# @inject
-# def shutdown(
-#     eventbus_client: EventBusContainer = Provide[AppContainer.eventbus_client],
-#     meals_repository: MealsRepository = Provide[
-#         AppContainer.meals_container.repository
-#     ],
-# ):
-#     STOP_EVENT.set()
+    time_sleep(2)
+    # health_worker_process.start()
 
-#     logging.info(f"Stopped asyncio event {id(STOP_EVENT)}: {STOP_EVENT.is_set()}")
-#     # await asyncio.sleep(0.25)
+    # meal_worker_process.join()
 
-#     eventbus_client.close()
+    asyncio.run(main())
 
-#     logging.info(
-#         f"Closed event bus client {id(eventbus_client)}: {eventbus_client._is_closed}"
-#     )
-
-#     meals_repository.close()
-
-# def main():
-
-#     # Set up signals that stops the event loop in case of a container/pod shutdown
-#     signal(SIGINT, lambda x: STOP_EVENT.set())
-#     signal(SIGTERM, lambda x: STOP_EVENT.set())
-
-
-# @inject
-# async def start_event_subscriptons(
-#     eventbus=Provide[AppContainer.eventbus],
-#     # insert_event_handler: MealInsertEventHandler = Provide[
-#     #     AppContainer.meals_container.insert_event_handler
-#     # ],
-# ):
-#     try:
-#         # handler = insert_event_handler
-#         # print("APP handler: ", handler)
-
-#         await asyncio.gather(
-#             handle_events(
-#                 eventbus.meals_subscription(),
-#             ),
-#             # handle_events(health_subscription, meals_event_handler),
-#         )
-
-#     except Exception as e:
-#         logging.error(f"Error in start_event_subscriptons: {e}")
-
-#     finally:
-#         shutdown()
+    # asyncio.gather(
+    #     *[
+    #         process_meal_events(subscription, meal_events_handler),
+    #     ]
+    # )

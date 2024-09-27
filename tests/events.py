@@ -4,12 +4,12 @@ from uuid import uuid4
 from esdbclient import EventStoreDBClient, NewEvent, StreamState
 from faker import Faker
 
-from src.domain.events.meals.insert import MealInsertEvent
+from src.events.meals.add_meal_event import AddMealEvent
 
 print("---> START EVENTS")
 
 FAKE = Faker()
-STREAM_NAME = "meals_stream"
+STREAM_NAME = "StreamMeals"
 EVENTS = 1
 
 client = EventStoreDBClient(uri="esdb://localhost:2113?Tls=false")
@@ -17,7 +17,8 @@ client = EventStoreDBClient(uri="esdb://localhost:2113?Tls=false")
 
 def run():
     for i in range(EVENTS):
-        meal = MealInsertEvent(
+        meal = AddMealEvent(
+            meal_id=uuid4(),
             user_id=uuid4(),
             meal_name=FAKE.name(),
             calories=float("{:.2f}".format(FAKE.random.uniform(10, 50))),
@@ -26,7 +27,7 @@ def run():
         pp(meal.meal_name)
 
         event = NewEvent(
-            type=MealInsertEvent.__name__,
+            type=AddMealEvent.__name__,
             data=bytes(meal.model_dump_json(), encoding="utf-8"),
         )
 

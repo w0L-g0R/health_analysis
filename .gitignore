@@ -17,3 +17,7 @@
 
 .venv
 /__pycache__
+
+*.xlsx
+
+*.png
