@@ -1,6 +1,6 @@
 from pprint import pformat
 
-from pydantic import BaseModel, ConfigDict, PostgresDsn, ValidationError
+from pydantic import PostgresDsn, ValidationError
 from pydantic_core import Url
 import pytest
 
@@ -14,10 +14,6 @@ from src.config.exceptions import (
     EmptyValueErrorMessages,
     InvalidConfigurationError,
 )
-
-
-class FieldValidator(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True, populate_by_name=True)
 
 
 @pytest.mark.validation

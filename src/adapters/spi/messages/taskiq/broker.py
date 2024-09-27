@@ -6,7 +6,7 @@ from pydantic_core import Url
 from taskiq_aio_pika import AioPikaBroker
 
 from src.config.config import setup_logging
-from src.config.validation import FieldValidator
+from src.config.field_validator import FieldValidator
 from src.ports.spi.messages.broker import MessageBroker
 
 setup_logging()

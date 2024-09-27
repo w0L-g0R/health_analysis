@@ -3,7 +3,7 @@ import logging
 from dependency_injector.wiring import Closing, Provide, inject
 
 from src.config.config import setup_logging
-from src.config.validation import FieldValidator
+from src.config.field_validator import FieldValidator
 from src.handler.exceptions import handle_exceptions
 from src.ports.api.tasks.meals.delete import TaskDelete
 from src.ports.api.tasks.meals.insert import TaskInsert

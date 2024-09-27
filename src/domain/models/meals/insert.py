@@ -2,7 +2,7 @@ from uuid import UUID
 
 from pydantic import Field
 
-from src.config.validation import FieldValidator
+from src.config.field_validator import FieldValidator
 
 
 class MealInsertModel(FieldValidator):

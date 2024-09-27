@@ -10,7 +10,7 @@ from src.adapters.spi.persistence.exceptions.database_connection_error import (
     handle_start_connection_error,
     handle_query_error,
 )
-from src.config.validation import FieldValidator
+from src.config.field_validator import FieldValidator
 from src.ports.spi.persistence.repository import Repository
 
 
@@ -42,12 +42,3 @@ class TimeScaleDbRepository(FieldValidator, Repository):
 
     async def update(self, query: str, *args) -> None:
         pass
-
-    @handle_close_connection_error
-    async def close(self) -> None:
-        await self._connection.close()
-        logging.info(
-            f"""Created Timescale DB connection: 
-                ID: {id(self._connection)}
-            """
-        )

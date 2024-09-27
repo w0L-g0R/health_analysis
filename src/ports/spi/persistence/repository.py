@@ -3,10 +3,6 @@ from abc import ABC, abstractmethod
 
 class Repository(ABC):
 
-    # @abstractmethod
-    # async def connect(self, *args) -> None:
-    #     pass
-
     @abstractmethod
     async def insert(self, *args, **kwargs) -> None:
         pass
@@ -18,8 +14,3 @@ class Repository(ABC):
     @abstractmethod
     async def update(self, *args, **kwargs) -> None:
         pass
-
-    #
-    # @abstractmethod
-    # async def close(self) -> None:
-    #     pass

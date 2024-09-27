@@ -1,3 +1,4 @@
+from asyncpg import connect
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import (
     Callable,
@@ -11,11 +12,16 @@ from dependency_injector.providers import (
 from src.adapters.api.tasks.meals.delete import MealDeleteTask
 from src.adapters.api.tasks.meals.insert import MealInsertQuery, MealInsertTask
 from src.adapters.spi.events.event_store_db.client import EventStoreDbClient
+
+# from src.adapters.spi.events.event_store_db.subscription import EventStoreDbSubscription
 from src.adapters.spi.messages.taskiq.broker import TaskiqBroker
 from src.adapters.spi.persistence.time_scale_db.connection import TimeScaleDbConnection
 from src.adapters.spi.persistence.time_scale_db.queries.meals import MealDeleteQuery
 from src.adapters.spi.persistence.time_scale_db.repository import TimeScaleDbRepository
-from src.containers.wrapper import EventStoreDbClientWrapper
+from src.containers.utils.resource_management import (
+    init_and_shutdown_event_client,
+    init_and_shutdown_time_scale_db_connection,
+)
 from src.domain.events.meals.delete import MealDeleteEvent
 from src.domain.events.meals.insert import MealInsertEvent
 from src.domain.models.meals.delete import MealDeleteModel
@@ -28,7 +34,7 @@ class MealsContainer(DeclarativeContainer):
     config = Configuration()
 
     connection = Resource(
-        TimeScaleDbConnection,
+        init_and_shutdown_time_scale_db_connection,
         connection_string=config.connections.timescaledb,
         database=config.databases.meals,
     )
@@ -39,21 +45,24 @@ class MealsContainer(DeclarativeContainer):
     )
 
     event_client = Resource(
-        EventStoreDbClientWrapper,
+        init_and_shutdown_event_client,
         uri=config.connections.eventstoredb,
         stream_name=config.subscriptions.meals.stream,
         subscribe_from_end=config.subscriptions.meals.from_end,
     )
     #
-    # event_subscription = Resource(EventSubscription)
-    #
-    # task_insert = Factory(
-    #     MealInsertTask,
-    #     repository=repository.provided,
-    #     event=Callable[MealInsertEvent],
-    #     model=Callable[MealInsertModel],
-    #     query=Object(MealInsertQuery),
-    # )
+    event_subscription = Resource(
+        event_client.provided.subscribe_to_stream,
+        stream_name=config.subscriptions.meals.stream,
+    )
+
+    task_insert = Factory(
+        MealInsertTask,
+        repository=repository.provided,
+        event=Callable[MealInsertEvent],
+        model=Callable[MealInsertModel],
+        query=Object(MealInsertQuery),
+    )
     #
     # task_delete = Factory(
     #     MealDeleteTask,
