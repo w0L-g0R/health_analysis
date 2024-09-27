@@ -49,7 +49,7 @@ import logging
 
 # from src.brokers.meals import meals_broker
 from src.config.config import CONFIG_DICT, setup_logging
-from src.containers.domain.meals import MealsContainer
+from src.containers.workers.meals import MealsContainer
 
 setup_logging()
 logger = logging.getLogger(__name__)
