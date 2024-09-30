@@ -50,6 +50,8 @@ import subprocess
 import sys
 from time import sleep
 
+from taskiq_aio_pika import AioPikaBroker
+
 from src._LEGACY.messages.exceptions import (
     BrokerRuntimeError,
     BrokerShutdownError,
@@ -168,15 +170,19 @@ def my_parallel_command(command):
 
 if __name__ == "__main__":
     # asyncio.run(bootstrap())
-    meals_broker = [
+
+    meals_broker = AioPikaBroker("amqp://guest:guest@localhost:5672")
+    health_broker = AioPikaBroker("amqp://guest:guest@localhost:5672")
+
+    meals = [
         sys.executable,
         "-m",
         "taskiq",
         "worker",
-        f"src.bootstrap.brokers.meals:meals_broker",
+        f"src.main:meals_broker",
     ]
 
-    health_broker = [
+    health = [
         sys.executable,
         "-m",
         "taskiq",
@@ -184,7 +190,7 @@ if __name__ == "__main__":
         f"src.bootstrap.brokers.meals:health_broker",
     ]
 
-    commands = [meals_broker, health_broker]
+    commands = [meals, health]
     cpus = 2
 
     with ProcessPoolExecutor(max_workers=cpus) as executor:
