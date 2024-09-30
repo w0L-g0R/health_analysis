@@ -1,16 +1,18 @@
 import logging
 
+from taskiq_aio_pika import AioPikaBroker
+
 from src.config.config import CONFIG_DICT, setup_logging
 from src.containers.meals_container import MealsContainer
 
 setup_logging()
 logger = logging.getLogger(__name__)
+meals_broker = AioPikaBroker("amqp://guest:guest@localhost:5672")
+health_broker = AioPikaBroker("amqp://guest:guest@localhost:5672")
 
-
-meals_container = MealsContainer()
-meals_container.config.from_dict(CONFIG_DICT)
-meals_container.init_resources()
-meals_broker = meals_container.broker()
+# meals_container.config.from_dict(CONFIG_DICT)
+# meals_container.init_resources()
+# meals_broker = meals_container.broker()
 
 # if __name__ == "__main__":
 #     cmd = [

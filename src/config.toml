@@ -41,9 +41,9 @@ health = "meals.exchange"
 
 [events]
 [events.meals]
-insert = "MealInsertEvent"
-delete = "MealDeleteEvent"
-update = "MealUpdateEvent"
+add = "AddMealEvent"
+remove = "RemoveMealEvent"
+modify = "ModifyMealEvent"
 
 [logging]
 version = 1

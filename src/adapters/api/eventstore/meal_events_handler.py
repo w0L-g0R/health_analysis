@@ -5,9 +5,7 @@ from esdbclient import CatchupSubscription
 from src.adapters.api.eventstore.exceptions import handle_exceptions
 from src.config.config import setup_logging
 from src.config.field_validator import FieldValidator
-from src.ports.api.use_cases.meals.add_meal.add_meal import AddMeal
 from src.ports.api.use_cases.meals.add_meal.add_meal_use_case import AddMealUseCase
-from src.ports.api.use_cases.meals.remove_meal.remove_meal import RemoveMealDto
 from src.ports.api.use_cases.meals.remove_meal.remove_meal_use_case import (
     RemoveMealUseCase,
 )

@@ -46,9 +46,19 @@
 # setup_logging()
 import asyncio
 import logging
+import subprocess
+import sys
+from time import sleep
+
+from src._LEGACY.messages.exceptions import (
+    BrokerRuntimeError,
+    BrokerShutdownError,
+    BrokerStartupError,
+)
 
 # from src.brokers.meals import meals_broker
-from src.config.config import CONFIG_DICT, setup_logging
+from src.config.config import CONFIG_DICT, get_module_path, setup_logging
+from src.containers.application_container import ApplicationContainer
 from src.containers.meals_container import MealsContainer
 
 setup_logging()
@@ -118,9 +128,11 @@ logger = logging.getLogger(__name__)
 
 
 async def bootstrap():
-    meals_container = MealsContainer()
-    meals_container.config.from_dict(CONFIG_DICT)
-    await meals_container.init_resources()
+    app_container = ApplicationContainer()
+    app_container.config.from_dict(CONFIG_DICT)
+    meals_container = app_container.meals_container()
+    print("meals_container: ", meals_container.dependencies)
+    await app_container.init_resources()
     # connection = await meals_container.connection()
     # print("awaited connection: ", connection)
     # repository = await meals_container.repository()
@@ -141,16 +153,79 @@ async def bootstrap():
     # client = meals_container.event_client.shutdown()
     # print("awaited shutdown: ", client)
 
-    await meals_container.shutdown_resources()
+    await app_container.shutdown_resources()
     # meals_container.init_resources()
     # meals_container.wire(modules=[__name__, MealsEventsHandler])
 
 
+import subprocess
+from concurrent.futures import ProcessPoolExecutor
+
+
+def my_parallel_command(command):
+    subprocess.run(command, shell=True)
+
+
 if __name__ == "__main__":
-    asyncio.run(bootstrap())
-    # asyncio.run(main())
+    # asyncio.run(bootstrap())
+    meals_broker = [
+        sys.executable,
+        "-m",
+        "taskiq",
+        "worker",
+        f"src.bootstrap.brokers.meals:meals_broker",
+    ]
 
+    health_broker = [
+        sys.executable,
+        "-m",
+        "taskiq",
+        "worker",
+        f"src.bootstrap.brokers.meals:health_broker",
+    ]
 
+    commands = [meals_broker, health_broker]
+    cpus = 2
+
+    with ProcessPoolExecutor(max_workers=cpus) as executor:
+        futures = executor.map(my_parallel_command, commands)
+
+    # process1 = None
+    # process2 = None
+    #
+    # while True:
+    #     try:
+    #         process1 = subprocess.Popen(meals_broker)
+    #         process2 = subprocess.Popen(health_broker)
+    #         process1.wait()
+    #         process2.wait()
+    #
+    #     except KeyboardInterrupt:
+    #         logger.info("Keyboard interrupt received. Terminating the worker process.")
+    #         if process1:
+    #             process1.terminate()
+    #             process1.wait()
+    #
+    #     except RuntimeError as re:
+    #         logger.error(f"A runtime error occurred: {re}")
+    #         if process1:
+    #             process1.terminate()
+    #             process1.wait()
+    #         raise BrokerRuntimeError(f"Runtime error in broker: {re}")
+    #
+    #     except Exception as e:
+    #         logger.error(f"An unexpected error occurred: {e}")
+    #         if process1:
+    #             process1.terminate()
+    #             process1.wait()
+    #         raise BrokerStartupError(f"Unexpected error in broker startup: {e}")
+    #
+    #     finally:
+    #         if process and process.poll() is None:
+    #             logger.info("Shutting down the worker process.")
+    #             process.terminate()
+    #             process.wait()
+    #             raise BrokerShutdownError("Error during broker shutdown.")
 # @inject
 # def shutdown(
 #     eventbus_client: EventBusContainer = Provide[AppContainer.eventbus_client],

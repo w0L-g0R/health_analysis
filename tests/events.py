@@ -4,7 +4,7 @@ from uuid import uuid4
 from esdbclient import EventStoreDBClient, NewEvent, StreamState
 from faker import Faker
 
-from src.domain.events.meals.insert import AddMealDto
+from src.ports.api.use_cases.meals.add_meal.add_meal_dto import AddMealDto
 
 print("---> START EVENTS")
 

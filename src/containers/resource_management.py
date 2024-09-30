@@ -1,15 +1,16 @@
-from asyncpg import connect
+from asyncpg import connect, create_pool
 from esdbclient import EventStoreDBClient
 
 
-async def init_and_shutdown_time_scale_db_connection(**kwargs):
+async def init_and_shutdown_time_asyncpg_connection_pool(**kwargs):
     dsn = "/".join(list(kwargs.values()))
-    resource = await connect(dsn=dsn)
+    resource = await create_pool(dsn=dsn)
     yield resource
     await resource.close()
 
 
-def init_and_shutdown_event_client(**kwargs):
+def init_and_shutdown_event_store_db_client(**kwargs):
+    print("kwargs: ", kwargs)
     resource = EventStoreDBClient(**kwargs)
     yield resource
     resource.close()

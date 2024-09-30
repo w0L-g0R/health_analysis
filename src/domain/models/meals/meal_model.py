@@ -6,8 +6,7 @@ from src.config.field_validator import FieldValidator
 class Meal(FieldValidator):
     meal_id: UUID
     user_id: UUID
-    meal_name: str = Field(min_length=3)
-    calories: float = Field(gt=0)
+    data: dict = Field(default=None)
 
     class Config:
         frozen = True

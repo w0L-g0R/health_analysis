@@ -5,41 +5,39 @@ from dependency_injector.providers import (
     Configuration,
     Dependency,
     Factory,
-    Object,
     Resource,
     Singleton,
 )
 from esdbclient import CatchupSubscription
 
+from src.adapters.api.eventstore.meal_events_handler import MealsEventsHandler
+from src.containers.resource_management import (
+    init_and_shutdown_time_asyncpg_connection_pool,
+)
 from src.domain.models.meals.meal_model import Meal
-from src.ports.api.use_cases.meals.add_meal.add_meal import AddMealDto
+from src.ports.api.use_cases.meals.add_meal.add_meal_dto import AddMealDto
+from src.ports.api.use_cases.meals.remove_meal.remove_meal_dto import RemoveMealDto
+from src.ports.api.use_cases.meals.remove_meal.remove_meal_use_case import (
+    RemoveMealUseCase,
+)
 from src.tasks.meals.add_meal_task import AddMealTask
 
 # from src.adapters.spi.events.event_store_db.subscription import EventStoreDbSubscription
 from src.adapters.spi.persistence.meals.meals_repository import MealsRepository
-from src.containers.resource_management import (
-    init_and_shutdown_event_client,
-    init_and_shutdown_time_scale_db_connection,
-)
+from src.tasks.meals.remove_meal_task import RemoveMealTask
 
 
 class MealsContainer(DeclarativeContainer):
     config = Configuration()
 
-    event_client = Resource(
-        init_and_shutdown_event_client,
-        uri=config.connections.eventstoredb,
+    meals_connection_pool = Resource(
+        init_and_shutdown_time_asyncpg_connection_pool,
+        connection_string=config.connections.timescaledb,
+        database=config.databases.meals,
     )
-    #
-    event_subscription = Dependency(
-        CatchupSubscription,
-    )
-
-    connection_pool = Dependency(Pool)
-
     repository = Singleton(
         MealsRepository,
-        _connection_pool=connection_pool,
+        _connection_pool=meals_connection_pool.provided,
     )
 
     add_meal_task = Factory(
@@ -49,17 +47,20 @@ class MealsContainer(DeclarativeContainer):
         _model=Callable[Meal],
     )
 
-    #
-    # task_delete = Factory(
-    #     MealDeleteTask,
-    #     repository=repository.provided,
-    #     event=Callable[MealDeleteEvent],
-    #     model=Callable[MealDeleteModel],
-    #     query=Object(MealDeleteQuery),
-    # )
-    #
-    # event_handler = Resource(
-    #     MealsEventsHandler,
+    remove_meal_task = Factory(
+        RemoveMealTask,
+        _repository=repository.provided,
+        _dto=Callable[RemoveMealDto],
+    )
+
+    event_handler = Resource(
+        MealsEventsHandler,
+        add_meal_use_case=add_meal_task,
+        remove_meal_use_case=RemoveMealUseCase,
+        add_meal_event_type=config.events.meal.add,
+        remove_meal_event_type=config.events.meal.remove,
+    )
+
     #     meal_insert_task=task_insert,
     #     meal_delete_task=task_delete,
     #     meal_insert_event_type_name=config.events.meals.insert,

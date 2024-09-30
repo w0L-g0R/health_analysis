@@ -20,10 +20,11 @@ class MealsRepository(FieldValidator, CreateMealPort, RemoveMealUseCase):
     async def create_meal(self, *args) -> None:
 
         query = """
-                INSERT INTO meals (time, meal_id, user_id, meal_name, calories) VALUES ($1, $2, $3, $4, $5)
+                INSERT INTO meals (time, meal_id, user_id, meal_name, calories) 
+                VALUES ($1, $2, $3, $4, $5)
          """
 
-        await self._dsn.execute(
+        await self._connection_pool.execute(
             query=query,
             *args,
         )
@@ -35,10 +36,12 @@ class MealsRepository(FieldValidator, CreateMealPort, RemoveMealUseCase):
     ) -> None:
 
         query = """
-            DELETE FROM meals WHERE meal_id = $1 AND user_id = $2
+            DELETE FROM meals 
+            WHERE meal_id = $1 
+            AND user_id = $2
         """
 
-        await self._dsn.execute(
+        await self._connection_pool.execute(
             query=query,
             *args,
         )
