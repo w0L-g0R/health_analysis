@@ -1,4 +1,4 @@
-from src.ports.spi.queries import Queries
+from src.interfaces.queries import Queries
 
 
 class MealsQueries(Queries):

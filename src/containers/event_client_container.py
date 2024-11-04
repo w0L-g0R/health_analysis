@@ -2,14 +2,9 @@ from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import (
     Configuration,
     Resource,
-    Singleton,
 )
 from esdbclient import EventStoreDBClient
 from esdbclient.common import AbstractCatchupSubscription
-
-from src.adapters.spi.events.meal_events import MealEvents
-
-# from src.adapters.spi.events.event_store_db.subscription import EventStoreDbSubscription
 from src.containers.resource_management import (
     init_and_shutdown_event_store_db_client,
 )
@@ -37,27 +32,8 @@ class EventClientContainer(DeclarativeContainer):
         from_end=config.streams.from_end.meals,
     )
 
-    meal_events = Singleton(
-        MealEvents,
-        add_meal=config.events.meals.add,
-    )
-
     meal_events_handler = Resource(
         MealsEventsHandler,
         subscription=meal_events_subscription.provided,
-        events=meal_events.provided,
+        add_meal_event=config.events.meals.add,
     )
-
-    # meals_connection_pool = Resource(
-    #     init_and_shutdown_time_asyncpg_connection_pool,
-    #     connection_string=config.connections.timescaledb,
-    #     database=config.databases.meals,
-    # )
-
-    # meals_container = Container(
-    #     MealsContainer,
-    #     # connection_string=config.connections.timescaledb,
-    #     # database=config.databases.meals,
-    #     connection_pool=meals_connection_pool.provided,
-    #     events_subscription=meal_events_subscription,
-    # )

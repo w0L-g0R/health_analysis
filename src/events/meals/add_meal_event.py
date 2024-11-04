@@ -10,9 +10,5 @@ class AddMealEvent(FieldValidator):
     meal_name: str = Field(min_length=3)
     calories: float = Field(gt=0)
 
-    @staticmethod
-    def validate(data: dict):
-        return AddMealEvent.model_validate(data)
-
     class Config:
         frozen = True
