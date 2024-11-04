@@ -1,3 +1,8 @@
+import json
+from traceback import print_tb
+from uuid import uuid4
+
+import psycopg2
 from asyncpg import Connection, Pool
 from pydantic import PrivateAttr
 from redis import ConnectionPool
@@ -16,12 +21,31 @@ class MealsRepository(FieldValidator, Repository):
     queries: Queries
 
     @handle_query_error
-    async def add(self, *args) -> None:
+    async def add(self, args):
+        print("args", *args)
+        a = args
+        print("a", a)
+        # c = uuid4()
+        # d = uuid4()
+        # e = json.dumps({"calories": 100, "meal_name": "test"})
+        # a = tuple([c, d, e])
+        try:
+            await self.connection_pool.execute(
+                """
+                    INSERT INTO meals (meal_id, user_id, meal_data)
+                    VALUES ($1, $2, $3)
+                """,
+                *args,
+            )
+        except Exception as error:
+            print(error)
+        # r = await self.connection_pool.fetch("SELECT * FROM meals")
+        # print(r)
 
-        await self.connection_pool.execute(
-            query=self.queries.add(),
-            *args,
-        )
+    # return await self.connection_pool.execute(
+    #     query=self.queries.add(),
+    #     *args,
+    # )
 
     @handle_query_error
     async def delete(

@@ -29,6 +29,7 @@ meals_broker = brokers_container.meals_broker()
 
 @meals_broker.on_event(TaskiqEvents.WORKER_STARTUP)
 async def startup_meals_broker(state: TaskiqState):
+
     container = MealsContainer()
     container.config.from_dict(CONFIG_DICT)
     await container.init_resources()
@@ -37,4 +38,4 @@ async def startup_meals_broker(state: TaskiqState):
     state.validators = container.validators()
     state.model = container.model
 
-    print("State:", state)
+    # print("State:", state)

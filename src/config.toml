@@ -38,11 +38,9 @@ health = true
 meals = "meals.queue"
 health = "meals.health"
 
-
 [exchanges]
 meals = "meals.exchange"
 health = "meals.exchange"
-
 
 [events]
 [events.meals]

@@ -1,4 +1,5 @@
 import asyncio
+import json
 import random
 from typing import Annotated, Union
 
@@ -38,42 +39,43 @@ async def add_meal_task(
     data: str,
     context: Annotated[Context, TaskiqDepends()],
 ):
-    print("ffa", data)
-    print("context", context)
+    # print("ffa", data)
+    # print("context", context)
     # return "yes"
     # print("Data", data)
     # print("context repo", context.state.repository)
     #
-    # validator = context.state.validators[AddMealEvent.__name__]
-    # model = context.state.model()
-    # print("event_data_validator", validator)
-    #
-    # try:
-    #     data = validator.validate(data)
-    # except:
-    #     print("error validating event data")
-    #
-    # print("event_data_validator", validator)
-    # print("model", model)
+    validator = context.state.validators[AddMealEvent.__name__]
 
-    # try:
-    #     dto = event.validate(data)
-    # except:
-    #     print("errorir")
+    try:
+        data = validator.validate(data)
+    except:
+        print("error validating event data")
+
+    meal_data = json.dumps(
+        {
+            "calories": data.calories,
+            "meal_name": data.meal_name,
+        }
+    )
+    print("meal_data", meal_data)
+    print("meal_data", type(meal_data))
+
+    entity = context.state.model()(
+        meal_id=data.meal_id, user_id=data.user_id, meal_data=meal_data
+    )
+
+    print("entity", entity)
     #
-    # print(dto)
-    # entity = Meal(
-    #     meal_id=dto.meal_id,
-    #     user_id=dto.user_id,
-    #     data={
-    #         "calories": dto.calories,
-    #         "meal_name": dto.meal_name,
-    #     },
-    # )
-    #
-    # query_args = entity.model_dump().values()
-    # print("query_args", query_args)
+    query_args = list(entity.model_dump().values())
+    # print("query_args", tuple(list(query_args)))
     # await asyncio.sleep(1)
+
+    repo = context.state.repository
+
+    r = await repo.add(query_args)
+
+    print(r)
 
     # await repository.add_meal(tuple(query_args))
 

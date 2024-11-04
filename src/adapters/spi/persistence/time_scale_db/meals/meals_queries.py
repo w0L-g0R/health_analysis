@@ -6,8 +6,8 @@ class MealsQueries(Queries):
     @staticmethod
     def add() -> str:
         return """
-                INSERT INTO meals (time, meal_id, user_id, meal_name, calories) 
-                VALUES ($1, $2, $3, $4, $5)
+                INSERT INTO meals (meal_id, user_id, data) 
+                VALUES ($1, $2, $3)
          """
 
     @staticmethod
