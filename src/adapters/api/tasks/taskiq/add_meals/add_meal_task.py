@@ -1,65 +1,81 @@
-from typing import Callable, Union
+import asyncio
+import random
+from typing import Annotated, Union
 
-from taskiq import AsyncTaskiqDecoratedTask
+from dependency_injector.providers import Callable
+from taskiq import AsyncTaskiqDecoratedTask, Context, TaskiqDepends
 
+from src.adapters.api.tasks.taskiq.meal_tasks import MealTasks
 from src.adapters.spi.persistence.time_scale_db.meals.meals_repository import (
     MealsRepository,
 )
 from src.brokers.meals_broker import meals_broker
 from src.config.field_validator import FieldValidator
+
+# from src.brokers.meals_broker import meals_broker
+from src.containers.meals_container import MealsContainer
 from src.events.meals.add_meal_event import AddMealEvent
-from src.models.meals.meal_model import Meal
-from src.ports.api.tasks.task import Task
+
+
+# def common_dep() -> int:
+#     return random.randint(1, 10)
+#
 
 
 @meals_broker.task("add_one")
-async def add_one():
-    print("Adding one")
-
-
-@meals_broker.task("add_meal_task")
-async def add_meal_task(
-    data: dict,
-    event: Callable[..., AddMealEvent],
-    # model: Callable[..., Meal],
-    # repository: MealsRepository,
+async def add_one(
+    data: str,
+    # con: Annotated[int, TaskiqDepends(common_dep)],
+    # container: Annotated[MealsContainer, TaskiqDepends()],
 ):
-    try:
-        dto = event.validate(data)
-    except:
-        print("errorir")
+    print("Adding one:", data)
+    # print("Adding con:", con)
+    # print("Container:", container.repository)
 
-    print(dto)
-    entity = Meal(
-        meal_id=dto.meal_id,
-        user_id=dto.user_id,
-        data={
-            "calories": dto.calories,
-            "meal_name": dto.meal_name,
-        },
-    )
 
-    query_args = entity.model_dump().values()
-    print("query_args", query_args)
+@meals_broker.task(str(MealTasks.ADD_MEAL))
+async def add_meal_task(
+    data: str,
+    context: Annotated[Context, TaskiqDepends()],
+):
+    print("ffa", data)
+    print("context", context)
+    # return "yes"
+    # print("Data", data)
+    # print("context repo", context.state.repository)
+    #
+    # validator = context.state.validators[AddMealEvent.__name__]
+    # model = context.state.model()
+    # print("event_data_validator", validator)
+    #
+    # try:
+    #     data = validator.validate(data)
+    # except:
+    #     print("error validating event data")
+    #
+    # print("event_data_validator", validator)
+    # print("model", model)
+
+    # try:
+    #     dto = event.validate(data)
+    # except:
+    #     print("errorir")
+    #
+    # print(dto)
+    # entity = Meal(
+    #     meal_id=dto.meal_id,
+    #     user_id=dto.user_id,
+    #     data={
+    #         "calories": dto.calories,
+    #         "meal_name": dto.meal_name,
+    #     },
+    # )
+    #
+    # query_args = entity.model_dump().values()
+    # print("query_args", query_args)
+    # await asyncio.sleep(1)
 
     # await repository.add_meal(tuple(query_args))
-
-
-class AddMealTask(FieldValidator, Task):
-    name: str
-    repository: MealsRepository
-    model: Callable[..., Meal]
-    event: Callable[..., AddMealEvent]
-    task: Union[None, AsyncTaskiqDecoratedTask] = None
-
-    def set_task(self, task: AsyncTaskiqDecoratedTask):
-        self.task = task
-
-    async def execute(self, data: str):
-        if self.task is None:
-            return
-
-        await self.task.kiq(data=data, event=self.event)
 
 
 # class AddMealTask(FieldValidator, Task):

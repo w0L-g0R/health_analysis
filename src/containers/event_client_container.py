@@ -37,13 +37,15 @@ class EventClientContainer(DeclarativeContainer):
         from_end=config.streams.from_end.meals,
     )
 
-    meal_events_handler = Resource(
-        MealsEventsHandler, subscription=meal_events_subscription.provided
-    )
-
     meal_events = Singleton(
         MealEvents,
         add_meal=config.events.meals.add,
+    )
+
+    meal_events_handler = Resource(
+        MealsEventsHandler,
+        subscription=meal_events_subscription.provided,
+        events=meal_events.provided,
     )
 
     # meals_connection_pool = Resource(

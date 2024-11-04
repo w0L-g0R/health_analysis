@@ -10,7 +10,6 @@ async def init_and_shutdown_time_asyncpg_connection_pool(**kwargs):
 
 
 def init_and_shutdown_event_store_db_client(**kwargs):
-    print("kwargs: ", kwargs)
     resource = EventStoreDBClient(**kwargs)
     yield resource
     resource.close()

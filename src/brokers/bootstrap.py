@@ -8,6 +8,7 @@ def start_meals_broker():
         WorkerArgs(
             broker="src.brokers.meals_broker:meals_broker",
             modules=["src.brokers.meals_broker"],
+            workers=3,
         )
     )
 
